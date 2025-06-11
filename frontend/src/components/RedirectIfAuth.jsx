@@ -7,17 +7,16 @@ import { setUser } from '../features/user/userSlice';
 // This component prevents logged-in users from accessing login/signup pages.
 // If the user is authenticated, they are redirected to /profiles.
 export default function RedirectIfAuth({ children }) {
-  const user = useSelector(state => state.user.user); // Get user from Redux
+  const user = useSelector(state => state.user.user);
   const dispatch = useDispatch();
-  const [checking, setChecking] = useState(true); // Track if auth check is in progress
-  const [isAuth, setIsAuth] = useState(!!user);   // Track if user is authenticated
+  const [checking, setChecking] = useState(true);
+  const [isAuth, setIsAuth] = useState(!!user);
 
   useEffect(() => {
     // If user is not in Redux, check with backend if user is authenticated
     if (!user) {
       api.get('/auth/check')
         .then(res => {
-          // If authenticated, update Redux and set isAuth to true
           if (res.data.authenticated) {
             dispatch(setUser({ userId: res.data.userId, email: res.data.email }));
             setIsAuth(true);
@@ -29,13 +28,12 @@ export default function RedirectIfAuth({ children }) {
           // Suppress 401 error log for /auth/check (not logged in is normal)
           if (err.response && err.response.status !== 401) {
             // Optionally log other errors
-            console.error(err);
+            // console.error(err);
           }
           setIsAuth(false);
         })
-        .finally(() => setChecking(false)); // Done checking
+        .finally(() => setChecking(false));
     } else {
-      // If user is already in Redux, no need to check backend
       setChecking(false);
       setIsAuth(true);
     }

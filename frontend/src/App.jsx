@@ -28,7 +28,8 @@ function App() {
     setRestored(true);
   }, [dispatch]);
 
-  if (!restored) return null; // Wait for restoration before rendering
+  // Only render routes after restoration is complete
+  if (!restored) return null;
 
   return (
     <BrowserRouter>

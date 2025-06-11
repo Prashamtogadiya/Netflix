@@ -10,12 +10,12 @@ export default function RequireAuth({ children }) {
   const selectedProfile = useSelector(state => state.profiles.selectedProfile); // Get selected profile from Redux
   const location = useLocation();
 
-  // If user is not logged in, redirect to login page
+  // Only redirect to login if user is truly missing
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // If on dashboard and no profile is selected, redirect to profiles page
+  // Only redirect to profiles if on dashboard and profile is missing
   if (location.pathname === '/dashboard' && !selectedProfile) {
     return <Navigate to="/profiles" replace />;
   }

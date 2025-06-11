@@ -1,4 +1,7 @@
 import axios from 'axios';
+import store from '../app/store';
+import { clearUser } from '../features/user/userSlice';
+import { clearProfiles } from '../features/profiles/profileSlice';
 
 // Create an Axios instance for making API requests to the backend
 const api = axios.create({
@@ -50,7 +53,12 @@ api.interceptors.response.use(
         // Retry the original request after refreshing token
         return api(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, redirect to login (unless already on login/signup)
+        // If refresh fails, clear user/profile from Redux and localStorage
+        store.dispatch(clearUser());
+        store.dispatch(clearProfiles());
+        localStorage.removeItem("user");
+        localStorage.removeItem("selectedProfile");
+        // Redirect to login (unless already on login/signup)
         if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
           window.location.href = '/login';
         }
