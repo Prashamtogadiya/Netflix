@@ -10,6 +10,7 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth.routes.js');
 const profileRoutes = require('./routes/profile.routes.js');
 const movieRoutes = require('./routes/movie.routes.js');
+const reviewRoutes = require('./routes/review.routes.js');
 
 // Import MongoDB connection function
 const connectDB = require('./config/db.js');
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
 // Mount movie routes at /api/movies
 app.use('/api/movies', movieRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 
 // Set the port from environment or default to 5000

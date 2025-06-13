@@ -1,14 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import api from '../api';
 import { useDispatch, useSelector } from 'react-redux';
 import { setProfiles, setSelectedProfile } from '../features/profiles/profileSlice';
-import CreateProfileForm from '../components/CreateProfileForm';
 import { useNavigate } from 'react-router-dom';
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const profiles = useSelector(state => state.profiles.profiles);
-  const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,8 +21,6 @@ export default function ProfilePage() {
     navigate('/dashboard');
   };
 
-// Background image URL can be set here if needed
-// bg-[url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80')]
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black relative">
       <div className="absolute inset-0 bg-cover bg-center opacity-40"></div>
@@ -52,7 +48,7 @@ export default function ProfilePage() {
             </button>
           ))}
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => navigate('/makenewprofile')}
             className="flex flex-col items-center group focus:outline-none"
             title="Add Profile"
           >
@@ -62,11 +58,6 @@ export default function ProfilePage() {
             <span className="mt-4 text-lg md:text-xl text-gray-400 group-hover:text-white font-semibold transition">Add Profile</span>
           </button>
         </div>
-        {showForm && (
-          <div className="w-full max-w-sm mx-auto">
-            <CreateProfileForm onCreated={() => setShowForm(false)} />
-          </div>
-        )}
       </div>
     </div>
   );

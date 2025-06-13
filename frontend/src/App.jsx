@@ -4,6 +4,7 @@ import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
+import MakeNewProfile from "./pages/MakeNewProfile";
 import RequireAuth from "./components/RequireAuth";
 import RedirectIfAuth from "./components/RedirectIfAuth";
 import { useDispatch } from "react-redux";
@@ -71,6 +72,14 @@ function App() {
           element={
             <RequireAuth>
               <DashboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/makenewprofile"
+          element={
+            <RequireAuth>
+              <MakeNewProfile />
             </RequireAuth>
           }
         />

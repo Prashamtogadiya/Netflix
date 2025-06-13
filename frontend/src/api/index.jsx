@@ -14,29 +14,7 @@ api.interceptors.response.use(
   response => response, // If response is OK, just return it
   async error => {
     const originalRequest = error.config;
-    // If we get a 401 Unauthorized error, and this is not a retry or a refresh/logout/check request
-    // This checks if the error is a 401 Unauthorized and if we should try to refresh the token.
-    // Let's break down each condition:
-    //
-    // error.response &&
-    //   Make sure there is a response object (so it's an HTTP error, not a network error).
-    //
-    // error.response.status === 401 &&
-    //   The HTTP status code is 401, which means "Unauthorized" (token is missing/expired).
-    //
-    // !originalRequest._retry &&
-    //   We have NOT already retried this request (prevents infinite loops).
-    //
-    // !originalRequest.url.endsWith('/auth/refresh') &&
-    //   The failed request is NOT the refresh endpoint itself (don't refresh when refreshing).
-    //
-    // !originalRequest.url.endsWith('/auth/logout') &&
-    //   The failed request is NOT the logout endpoint (don't refresh on logout).
-    //
-    // !originalRequest.url.endsWith('/auth/check')
-    //   The failed request is NOT the auth check endpoint (don't refresh on check).
-    //
-    // If ALL these are true, we try to refresh the access token.
+    
     if (
       error.response &&
       error.response.status === 401 &&
