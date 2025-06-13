@@ -20,7 +20,8 @@ const movieSchema = new mongoose.Schema({
   Language: [String],           // Languages available
   Genre: [String],              // Genres of the movie
   Awards: String,               // Awards won by the movie
-  Types: [String],              // Types/categories (e.g., "Movie", "Series")
+  Types: [String],   
+  Rating:Number,           // Types/categories (e.g., "Movie", "Series")
   Searches: Number,          // Top searches (optional)
   Image: [String],               // URL to the movie poster image
   Video: String,               // URL to the movie video file
