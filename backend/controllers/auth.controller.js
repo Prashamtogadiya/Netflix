@@ -141,3 +141,48 @@ exports.refresh = async (req, res) => {
     res.status(403).json({ message: 'Invalid refresh token', error: err.message });
   }
 };
+
+// Controller to check authentication status
+exports.checkAuth = async (req, res) => {
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+  try {
+    // Try access token first
+    if (accessToken) {
+      try {
+        const payload = jwt.verify(accessToken, ACCESS_TOKEN_SECRET);
+        return res.json({ authenticated: true, userId: payload.userId, email: payload.email });
+      } catch (err) {
+        // If token expired, continue to refresh
+        if (err.name !== "TokenExpiredError") {
+          return res.status(401).json({ authenticated: false, message: "Invalid access token" });
+        }
+      }
+    }
+    // Try refresh token
+    if (refreshToken) {
+      try {
+        const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+        // Find user with matching ID and refresh token
+        const user = await User.findOne({ _id: payload.userId, refreshToken });
+        if (!user) return res.status(403).json({ authenticated: false, message: 'Invalid refresh token' });
+
+        // Generate new tokens and save new refresh token in DB
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = generateTokens(user);
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        // Set new tokens as HTTP-only cookies
+        res.cookie('accessToken', newAccessToken, { httpOnly: true, sameSite: 'strict' });
+        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: 'strict' });
+
+        return res.json({ authenticated: true, userId: user._id, email: user.email });
+      } catch (err) {
+        return res.status(403).json({ authenticated: false, message: 'Invalid refresh token' });
+      }
+    }
+    return res.status(401).json({ authenticated: false, message: "No valid token" });
+  } catch (err) {
+    return res.status(500).json({ authenticated: false, message: "Auth check failed", error: err.message });
+  }
+};
