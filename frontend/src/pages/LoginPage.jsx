@@ -51,7 +51,7 @@ export default function LoginPage() {
               type="submit"
               className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded mt-2 transition"
             >
-              Sign In
+              Log In
             </button>
           </form>
           <div className="flex justify-between items-center mt-4 text-sm text-gray-400">
