@@ -1,25 +1,32 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../api';
 import { useDispatch, useSelector } from 'react-redux';
 import { setProfiles, setSelectedProfile } from '../features/profiles/profileSlice';
 import { useNavigate } from 'react-router-dom';
+import NetflixLoader from "../components/NetflixLoader";
 
 export default function ProfilePage() {
   const dispatch = useDispatch();
   const profiles = useSelector(state => state.profiles.profiles);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/profiles')
-      .then(res => dispatch(setProfiles(res.data)))
-      .catch(() => dispatch(setProfiles([])));
-  }, [dispatch]);
+  setLoading(true);
+  api.get('/profiles')
+    .then(res => dispatch(setProfiles(res.data)))
+    .catch(() => dispatch(setProfiles([])))
+    .finally(() => setLoading(false));
+}, [dispatch]);
+
 
   const handleProfileSelect = (profile) => {
     dispatch(setSelectedProfile(profile));
     localStorage.setItem('selectedProfile', JSON.stringify(profile));
     navigate('/dashboard');
   };
+
+  if (loading) return <NetflixLoader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-black via-gray-900 to-black relative">

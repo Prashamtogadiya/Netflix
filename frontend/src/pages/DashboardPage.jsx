@@ -7,6 +7,7 @@ import api from "../api";
 import MovieCarousel from "../components/MovieCarousel";
 import Navbar from "../components/Navbar";
 import HeroCarousel from "../components/HeroCarousel";
+import NetflixLoader from "../components/NetflixLoader";
 
 export default function DashboardPage() {
   const profile = useSelector((state) => state.profiles.selectedProfile);
@@ -18,6 +19,7 @@ export default function DashboardPage() {
   const [movies, setMovies] = useState([]);
   const [startIdx, setStartIdx] = useState(0);
   const [heroIdx, setHeroIdx] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const VISIBLE_COUNT = 6;
   const SHIFT_BY = 3;
@@ -25,11 +27,24 @@ export default function DashboardPage() {
 
   // Fetch movies on mount
   useEffect(() => {
-    api
-      .get("/movies")
-      .then((res) => setMovies(res.data))
-      .catch(() => setMovies([]));
-  }, []);
+  setLoading(true);
+  const MIN_LOADING_TIME = 4000; // 1 second
+  const startTime = Date.now();
+
+  api
+    .get("/movies")
+    .then((res) => setMovies(res.data))
+    .catch(() => setMovies([]))
+    .finally(() => {
+      const elapsed = Date.now() - startTime;
+      const remainingTime = Math.max(0, MIN_LOADING_TIME - elapsed);
+
+      setTimeout(() => {
+        setLoading(false);
+      }, remainingTime);
+    });
+}, []);
+
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -39,6 +54,7 @@ export default function DashboardPage() {
   };
 
   if (!profile) return null;
+  if (loading) return <NetflixLoader />;
 
   // For main carousel
   const maxStartIdx = Math.max(0, movies.length - VISIBLE_COUNT);

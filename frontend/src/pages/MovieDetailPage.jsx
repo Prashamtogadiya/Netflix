@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import api from "../api";
 import Navbar from "../components/Navbar";
 import MovieCarousel from "../components/MovieCarousel";
+import NetflixLoader from "../components/NetflixLoader";
 import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 
@@ -18,15 +19,35 @@ export default function MovieDetailPage() {
 
   const [movie, setMovie] = useState(null);
   const [movies, setMovies] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api.get(`/movies/${movieId}`)
-      .then(res => setMovie(res.data))
-      .catch(() => setMovie(null));
-    api.get("/movies")
-      .then(res => setMovies(res.data))
-      .catch(() => setMovies([]));
-  }, [movieId]);
+ useEffect(() => {
+  setLoading(true);
+  const MIN_LOADING_TIME = 1000; // 1 second
+  const startTime = Date.now();
+
+  const fetchData = async () => {
+    try {
+      const [movieRes, allMoviesRes] = await Promise.all([
+        api.get(`/movies/${movieId}`),
+        api.get("/movies")
+      ]);
+      setMovie(movieRes.data);
+      setMovies(allMoviesRes.data);
+    } catch (err) {
+      console.error("Error fetching movie data:", err);
+      setMovie(null);
+      setMovies([]);
+    } finally {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+      setTimeout(() => setLoading(false), remaining);
+    }
+  };
+
+  fetchData();
+}, [movieId]);
+
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -37,6 +58,7 @@ export default function MovieDetailPage() {
     navigate("/login");
   };
 
+  if (loading) return <NetflixLoader />;
   if (!movie) {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col">
@@ -57,9 +79,10 @@ export default function MovieDetailPage() {
           <iframe
             src={movie.Video}
             title={movie.Title}
+            
             allowFullScreen
             className="w-full h-full"
-            frameBorder="0"
+            
           />
         </div>
       </div>

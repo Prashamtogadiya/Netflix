@@ -3,10 +3,13 @@ import api from "../api";
 import { useDispatch } from "react-redux";
 import { setProfiles } from "../features/profiles/profileSlice";
 import { useNavigate } from "react-router-dom";
+import NetflixLoader from "../components/NetflixLoader";
 
 export default function MakeNewProfile() {
   // State for name, gender, and selected avatar index
   const [form, setForm] = useState({ name: "", gender: "male", avatarInd: 0 });
+  const [loading, setLoading] = useState(false);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -42,17 +45,22 @@ export default function MakeNewProfile() {
   // Handle form submit (replace with your API logic)
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const avatar = AVATARS[form.gender][form.avatarInd];
-      await api.post("/profiles", { name: form.name, avatar });
+      await Promise.all([
+        api.post("/profiles", { name: form.name, avatar }),
+      ]);
       const res = await api.get("/profiles");
       dispatch(setProfiles(res.data));
-      // Navigate to profiles page after successful creation
       navigate("/profiles");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to create profile");
     }
+    setLoading(false);
   };
+
+  if (loading) return <NetflixLoader />;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
