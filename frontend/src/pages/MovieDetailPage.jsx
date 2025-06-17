@@ -79,7 +79,6 @@ export default function MovieDetailPage() {
           <iframe
             src={movie.Video}
             title={movie.Title}
-            
             allowFullScreen
             className="w-full h-full"
             

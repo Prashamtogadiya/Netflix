@@ -8,6 +8,7 @@ import MovieCarousel from "../components/MovieCarousel";
 import Navbar from "../components/Navbar";
 import HeroCarousel from "../components/HeroCarousel";
 import NetflixLoader from "../components/NetflixLoader";
+import Footer from "../components/Footer";
 
 export default function DashboardPage() {
   const profile = useSelector((state) => state.profiles.selectedProfile);
@@ -107,6 +108,8 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold mb-4">Popular Actors</h2>
         <ActorCarousel movies={movies} />
       </section>
+
+      <Footer/>
     </div>
   );
 }
