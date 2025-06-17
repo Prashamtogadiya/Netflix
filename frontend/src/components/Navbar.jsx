@@ -17,6 +17,11 @@ export default function Navbar({ profile, profileURL, onLogout }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdown]);
 
+  // Prevent error if profile or profile.name is undefined
+  const safeProfileName = profile && profile.name ? profile.name : "Profile";
+  const safeProfileURL =
+    profileURL || "https://placehold.co/120x120?text=User";
+
   return (
     <nav className="flex items-center justify-between px-8 py-4 bg-transparent fixed w-full z-20">
       <div className="flex items-center gap-8">
@@ -80,7 +85,7 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         {/* Profile avatar with dropdown */}
         <div className="relative" ref={dropdownRef}>
           <img
-            src={profileURL}
+            src={safeProfileURL}
             alt="profile"
             className="rounded-full h-12 w-12 object-cover cursor-pointer border-2 border-transparent hover:border-white transition"
             onMouseEnter={() => setDropdown(true)}
@@ -100,12 +105,12 @@ export default function Navbar({ profile, profileURL, onLogout }) {
                 >
                   My Profile
                 </a>
-                <hr class="h-px bg-gray-200 border-0 dark:bg-gray-700"/>
+                <hr className="h-px bg-gray-200 border-0 dark:bg-gray-700" />
 
                 <button
                   onClick={() => {
                     setDropdown(false);
-                    onLogout();
+                    onLogout && onLogout();
                   }}
                   className="px-4 py-3 text-left text-white transition hover:bg-red-600"
                 >
@@ -115,7 +120,7 @@ export default function Navbar({ profile, profileURL, onLogout }) {
             </div>
           )}
         </div>
-        <span className="font-semibold hidden md:block">{profile.name}</span>
+        <span className="font-semibold hidden md:block">{safeProfileName}</span>
       </div>
     </nav>
   );

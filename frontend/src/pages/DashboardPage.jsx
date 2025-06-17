@@ -20,8 +20,8 @@ export default function DashboardPage() {
   const [heroIdx, setHeroIdx] = useState(0);
 
   const VISIBLE_COUNT = 6;
-  const SHIFT_BY = 2;
-  const CARD_WIDTH = 472;
+  const SHIFT_BY = 3;
+  const CARD_WIDTH = 320;
 
   // Fetch movies on mount
   useEffect(() => {
@@ -100,6 +100,7 @@ function MovieCarouselSimple({ movies }) {
   const [startIdx, setStartIdx] = useState(0);
   const VISIBLE_COUNT = 3; // Number of cards visible at once
   const CARD_WIDTH = 300 + 24; // Decreased width: 300px card + 1.5rem gap (gap-6)
+  const navigate = useNavigate();
 
   const maxStartIdx = Math.max(0, movies.length - VISIBLE_COUNT);
 
@@ -134,7 +135,9 @@ function MovieCarouselSimple({ movies }) {
         {movies.map((movie) => (
           <div
             key={movie._id}
-            className="flex flex-col items-start bg-gray-900 rounded-lg shadow-lg min-w-[300px] max-w-[300px] overflow-hidden"
+            className="flex flex-col hover:scale-105 cursor-pointer transition-transform duration-500 ease-in-out items-start bg-gray-900 rounded-lg shadow-lg min-w-[300px] max-w-[300px] overflow-hidden"
+                        onClick={() => navigate(`/movies/${movie._id}`)}
+
           >
             {/* Movie image (top half) */}
             <div className="w-full h-44 bg-black flex items-center justify-center">
@@ -234,7 +237,7 @@ function ActorCarousel({ movies }) {
         {actorList.map((actor, idx) => (
           <div
             key={actor.name + idx}
-            className="flex flex-col items-center min-w-[120px] max-w-[120px]"
+            className="flex flex-col items-center transition-transform duration-500 ease-in-out cursor-pointer hover:scale-120 min-w-[120px] max-w-[120px]"
           >
             <img
               src={actor.img || "https://placehold.co/120x120?text=No+Image"}

@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import MakeNewProfile from "./pages/MakeNewProfile";
+import MovieDetailPage from "./pages/MovieDetailPage";
 import RequireAuth from "./components/RequireAuth";
 import RedirectIfAuth from "./components/RedirectIfAuth";
 import { useDispatch } from "react-redux";
@@ -80,6 +81,14 @@ function App() {
           element={
             <RequireAuth>
               <MakeNewProfile />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/movies/:movieId"
+          element={
+            <RequireAuth>
+              <MovieDetailPage />
             </RequireAuth>
           }
         />

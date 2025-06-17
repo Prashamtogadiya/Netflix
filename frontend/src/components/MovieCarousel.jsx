@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function MovieCarousel({
   movies,
@@ -9,13 +10,14 @@ export default function MovieCarousel({
   onNext,
   maxStartIdx: controlledMaxStartIdx,
 }) {
-  // If controlledStartIdx is undefined, use internal state (for All Movies carousel)
   const [internalStartIdx, setInternalStartIdx] = useState(0);
   const startIdx = controlledStartIdx !== undefined ? controlledStartIdx : internalStartIdx;
   const maxStartIdx =
     controlledMaxStartIdx !== undefined
       ? controlledMaxStartIdx
       : Math.max(0, movies.length - visibleCount);
+
+  const navigate = useNavigate();
 
   const handlePrev = () => {
     if (onPrev) onPrev();
@@ -57,7 +59,11 @@ export default function MovieCarousel({
             className="min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 cursor-pointer"
             style={{
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              width: cardWidth,
+              minWidth: cardWidth,
+              maxWidth: cardWidth,
             }}
+            onClick={() => navigate(`/movies/${movie._id}`)}
             onMouseEnter={(e) =>
               (e.currentTarget.style.transform = "scale(1.07)")
             }
