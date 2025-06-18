@@ -19,6 +19,9 @@
     "react-dom": "^19.1.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.2",
+    "react-swipeable": "^7.0.2",
+    "swiper": "^11.2.8",
+    "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss": "^4.1.8"
   },
   "devDependencies": {

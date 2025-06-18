@@ -116,36 +116,15 @@ export default function DashboardPage() {
 
 // Carousel component for all movies
 function MovieCarouselSimple({ movies }) {
-  const [startIdx, setStartIdx] = useState(0);
-  const VISIBLE_COUNT = 3; // Number of cards visible at once
-  const CARD_WIDTH = 300 + 24; // Decreased width: 300px card + 1.5rem gap (gap-6)
   const navigate = useNavigate();
 
-  const maxStartIdx = Math.max(0, movies.length - VISIBLE_COUNT);
-
-  const handlePrev = () => setStartIdx((prev) => Math.max(prev - 1, 0));
-  const handleNext = () => setStartIdx((prev) => Math.min(prev + 1, maxStartIdx));
-
-  const translateX = -(startIdx * CARD_WIDTH);
-
   return (
-    <div className="relative overflow-hidden">
-      <button
-        onClick={handlePrev}
-        disabled={startIdx === 0}
-        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 transition cursor-pointer ${
-          startIdx === 0 ? "opacity-30 cursor-not-allowed" : ""
-        }`}
-        style={{ minWidth: 40 }}
-        aria-label="Scroll left"
-      >
-        &#8592;
-      </button>
+    <div className="relative px-4">
       <div
-        className="flex gap-6 transition-transform duration-500 ease-in-out py-4"
+        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide py-4"
         style={{
-          minWidth: `${VISIBLE_COUNT * CARD_WIDTH}px`,
-          transform: `translateX(${translateX}px)`,
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none", // IE/Edge
         }}
       >
         {movies.length === 0 && (
@@ -154,11 +133,10 @@ function MovieCarouselSimple({ movies }) {
         {movies.map((movie) => (
           <div
             key={movie._id}
-            className="flex flex-col hover:scale-105 cursor-pointer transition-transform duration-500 ease-in-out items-start bg-gray-900 rounded-lg shadow-lg min-w-[300px] max-w-[300px] overflow-hidden"
-                        onClick={() => navigate(`/movies/${movie._id}`)}
-
+            className="snap-start flex flex-col hover:scale-105 cursor-pointer transition-transform duration-500 ease-in-out items-start bg-gray-900 rounded-lg shadow-lg min-w-[300px] max-w-[300px] overflow-hidden"
+            onClick={() => navigate(`/movies/${movie._id}`)}
           >
-            {/* Movie image (top half) */}
+            {/* Movie image */}
             <div className="w-full h-44 bg-black flex items-center justify-center">
               <img
                 src={
@@ -170,6 +148,7 @@ function MovieCarouselSimple({ movies }) {
                 className="object-cover w-full h-full"
               />
             </div>
+
             {/* Movie info */}
             <div className="w-full flex flex-col items-start px-4 py-3">
               <h3 className="text-lg font-bold mb-1 truncate w-full">{movie.Title}</h3>
@@ -178,34 +157,24 @@ function MovieCarouselSimple({ movies }) {
                   src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
                   alt="IMDb"
                   className="w-8 h-4 object-contain"
-                  style={{ background: "transparent" }}
                 />
                 <span>{movie.Rating || "N/A"}</span>
                 <span>·</span>
                 <span>{movie.Year}</span>
               </div>
-              <p className="text-xs text-gray-300 mb-2 line-clamp-3">{movie.Description}</p>
+              <p className="text-xs text-gray-300 mb-2 line-clamp-3">
+                {movie.Description}
+              </p>
             </div>
           </div>
         ))}
       </div>
-      <button
-        onClick={handleNext}
-        disabled={startIdx >= maxStartIdx}
-        className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 transition cursor-pointer ${
-          startIdx >= maxStartIdx ? "opacity-30 cursor-not-allowed" : ""
-        }`}
-        style={{ minWidth: 40 }}
-        aria-label="Scroll right"
-      >
-        &#8594;
-      </button>
     </div>
   );
 }
 
 function ActorCarousel({ movies }) {
-  // Collect all actors and their images (now both are arrays)
+  // Collect all actors and their images
   const actorList = [];
   movies.forEach(movie => {
     if (Array.isArray(movie.Actors) && Array.isArray(movie.ActorImage)) {
@@ -218,36 +187,13 @@ function ActorCarousel({ movies }) {
     }
   });
 
-  // Carousel logic
-  const [startIdx, setStartIdx] = useState(0);
-  const VISIBLE_COUNT = 7;
-  const CARD_WIDTH = 120 + 16; // 120px card + 1rem gap
-
-  const maxStartIdx = Math.max(0, actorList.length - VISIBLE_COUNT);
-
-  const handlePrev = () => setStartIdx((prev) => Math.max(prev - 1, 0));
-  const handleNext = () => setStartIdx((prev) => Math.min(prev + 1, maxStartIdx));
-
-  const translateX = -(startIdx * CARD_WIDTH);
-
   return (
-    <div className="relative overflow-hidden">
-      <button
-        onClick={handlePrev}
-        disabled={startIdx === 0}
-        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 transition cursor-pointer ${
-          startIdx === 0 ? "opacity-30 cursor-not-allowed" : ""
-        }`}
-        style={{ minWidth: 32 }}
-        aria-label="Scroll left"
-      >
-        &#8592;
-      </button>
+    <div className="relative px-4">
       <div
-        className="flex gap-4 transition-transform duration-500 ease-in-out py-4"
+        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 scrollbar-hide"
         style={{
-          minWidth: `${VISIBLE_COUNT * CARD_WIDTH}px`,
-          transform: `translateX(${translateX}px)`,
+          scrollbarWidth: "none", // Firefox
+          msOverflowStyle: "none", // IE/Edge
         }}
       >
         {actorList.length === 0 && (
@@ -256,7 +202,7 @@ function ActorCarousel({ movies }) {
         {actorList.map((actor, idx) => (
           <div
             key={actor.name + idx}
-            className="flex flex-col items-center transition-transform duration-500 ease-in-out cursor-pointer hover:scale-120 min-w-[120px] max-w-[120px]"
+            className="snap-start flex flex-col items-center transition-transform duration-500 ease-in-out cursor-pointer hover:scale-110 min-w-[120px] max-w-[120px]"
           >
             <img
               src={actor.img || "https://placehold.co/120x120?text=No+Image"}
@@ -267,17 +213,6 @@ function ActorCarousel({ movies }) {
           </div>
         ))}
       </div>
-      <button
-        onClick={handleNext}
-        disabled={startIdx >= maxStartIdx}
-        className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 transition cursor-pointer ${
-          startIdx >= maxStartIdx ? "opacity-30 cursor-not-allowed" : ""
-        }`}
-        style={{ minWidth: 32 }}
-        aria-label="Scroll right"
-      >
-        &#8594;
-      </button>
     </div>
   );
 }
