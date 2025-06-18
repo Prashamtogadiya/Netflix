@@ -305,11 +305,10 @@ export default function MovieDetailPage() {
             height="315"
             src="https://www.youtube.com/embed/d9MyW72ELq0?si=03ZmCfriWvOx2tGj"
             title="YouTube video player"
-            frameborder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerpolicy="strict-origin-when-cross-origin"
             className="w-full h-full"
-            allowfullscreen
+            allowFullScreen
           ></iframe>
         </div>
       </div>

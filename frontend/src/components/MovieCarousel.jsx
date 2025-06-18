@@ -31,7 +31,7 @@ export default function MovieCarousel({
   const translateX = -(startIdx * cardWidth);
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden px-4"> {/* Added px-4 for horizontal padding */}
       <button
         onClick={handlePrev}
         disabled={startIdx === 0}
