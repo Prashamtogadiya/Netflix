@@ -5,6 +5,7 @@ import api from "../api";
 import Navbar from "../components/Navbar";
 import MovieCarousel from "../components/MovieCarousel";
 import NetflixLoader from "../components/NetflixLoader";
+import Footer from "../components/Footer";
 import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 
@@ -168,7 +169,14 @@ export default function MovieDetailPage() {
   const [movie, setMovie] = useState(null);
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [myListMovies, setMyListMovies] = useState([]);
+  const [myListLoading, setMyListLoading] = useState(true);
 
+  // My List state
+  const [inMyList, setInMyList] = useState(false);
+  const [listLoading, setListLoading] = useState(false);
+
+  // Fetch movie and all movies data
   useEffect(() => {
     setLoading(true);
     const MIN_LOADING_TIME = 1000; // 1 second
@@ -196,6 +204,31 @@ export default function MovieDetailPage() {
     fetchData();
   }, [movieId]);
 
+  // Fetch My List for the current profile
+  useEffect(() => {
+    if (!profile) return;
+    setMyListLoading(true);
+    api
+      .get(`/profiles/${profile._id}/mylist`)
+      .then((res) => setMyListMovies(res.data.myList || []))
+      .catch(() => setMyListMovies([]))
+      .finally(() => setMyListLoading(false));
+  }, [profile]);
+
+  // Check if movie is in My List for this profile
+  useEffect(() => {
+    if (!profile || !movie?._id) return;
+    setListLoading(true);
+    api
+      .get(`/profiles/${profile._id}/mylist`)
+      .then((res) => {
+        const myList = res.data.myList || [];
+        setInMyList(myList.some((m) => (m._id || m) === movie._id));
+      })
+      .catch(() => setInMyList(false))
+      .finally(() => setListLoading(false));
+  }, [profile, movie?._id]);
+
   const handleLogout = async () => {
     await api.post("/auth/logout");
     dispatch(clearUser());
@@ -203,6 +236,42 @@ export default function MovieDetailPage() {
     localStorage.removeItem("user");
     localStorage.removeItem("selectedProfile");
     navigate("/login");
+  };
+
+  // Add to My List
+  const handleAddToMyList = async () => {
+    if (!profile || !movie) return;
+    if (!window.confirm("Add this movie to your list?")) return;
+    setListLoading(true);
+    try {
+      await api.post("/profiles/mylist/add", {
+        profileId: profile._id,
+        movieId: movie._id,
+      });
+      setInMyList(true);
+    } catch (err) {
+      console.error("Failed to add to My List:", err);
+      alert("Failed to add to My List");
+    }
+    setListLoading(false);
+  };
+
+  // Remove from My List
+  const handleRemoveFromMyList = async () => {
+    if (!profile || !movie) return;
+    if (!window.confirm("Remove this movie from your list?")) return;
+    setListLoading(true);
+    try {
+      await api.post("/profiles/mylist/remove", {
+        profileId: profile._id,
+        movieId: movie._id,
+      });
+      setInMyList(false);
+    } catch (err) {
+      console.error("Failed to remove from My List:", err);
+      alert("Failed to remove from My List");
+    }
+    setListLoading(false);
   };
 
   if (loading) return <NetflixLoader />;
@@ -256,24 +325,49 @@ export default function MovieDetailPage() {
         </div>
         <p className="text-gray-200 mb-4">{movie.Description}</p>
         <div className="flex items-center gap-4 mb-6">
-          <button
-            className="flex items-center justify-center bg-black/80 hover:bg-gray-900 text-white rounded-full w-12 h-12 transition border-2 border-white"
-            title="Add to My List"
-          >
-            <svg
-              className="w-7 h-7"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              viewBox="0 0 24 24"
+          {inMyList ? (
+            <button
+              className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white rounded-full w-12 h-12 transition border-2 border-white"
+              title="Remove from My List"
+              onClick={handleRemoveFromMyList}
+              disabled={listLoading}
             >
-              <path
-                d="M12 5v14M5 12h14"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
+              <svg
+                className="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M6 6l12 12M6 18L18 6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : (
+            <button
+              className="flex items-center justify-center bg-black/80 hover:bg-gray-900 text-white rounded-full w-12 h-12 transition border-2 border-white"
+              title="Add to My List"
+              onClick={handleAddToMyList}
+              disabled={listLoading}
+            >
+              <svg
+                className="w-7 h-7"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 5v14M5 12h14"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 text-sm text-gray-400 mb-2">
           <span>
@@ -292,6 +386,19 @@ export default function MovieDetailPage() {
       </div>
       {/* Reviews Section */}
       <ReviewSection movieId={movieId} user={user} />
+
+      {/* My List Section */}
+      <div className="max-w-7xl mx-auto w-full px-4 mt-8">
+        <h2 className="text-2xl font-bold mb-4">My List</h2>
+        {myListLoading ? (
+          <div className="text-gray-400 py-8">Loading your list...</div>
+        ) : myListMovies.length === 0 ? (
+          <div className="text-gray-400 py-8">No movies in your list yet.</div>
+        ) : (
+          <MovieCarousel movies={myListMovies} visibleCount={5} cardWidth={340} />
+        )}
+      </div>
+
       {/* Carousels */}
       <div className="max-w-7xl mx-auto w-full px-4">
         <h2 className="text-2xl font-bold mb-4">More Like This</h2>
@@ -301,6 +408,7 @@ export default function MovieDetailPage() {
         <h2 className="text-2xl font-bold mb-4">Popular on Netflix</h2>
         <MovieCarousel movies={movies} visibleCount={5} cardWidth={340} />
       </div>
+      <Footer />
     </div>
   );
 }

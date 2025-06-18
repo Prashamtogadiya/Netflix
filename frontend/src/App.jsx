@@ -6,6 +6,7 @@ import ProfilePage from "./pages/ProfilePage";
 import DashboardPage from "./pages/DashboardPage";
 import MakeNewProfile from "./pages/MakeNewProfile";
 import MovieDetailPage from "./pages/MovieDetailPage";
+import MyListPage from "./pages/MyListPage";
 import RequireAuth from "./components/RequireAuth";
 import RedirectIfAuth from "./components/RedirectIfAuth";
 import { useDispatch } from "react-redux";
@@ -89,6 +90,14 @@ function App() {
           element={
             <RequireAuth>
               <MovieDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/mylist"
+          element={
+            <RequireAuth>
+              <MyListPage />
             </RequireAuth>
           }
         />
