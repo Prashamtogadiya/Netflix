@@ -3,10 +3,10 @@ const mongoose = require('mongoose');
 
 // This schema defines a single review for a movie
 const reviewSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // The user who wrote the review
-  rating: { type: Number, required: true }, // The rating given by the user (e.g., 1-5)
-  comment: { type: String }, // The review text
-  createdAt: { type: Date, default: Date.now } // When the review was created
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  rating: { type: Number, required: true },
+  comment: { type: String },
+  createdAt: { type: Date, default: Date.now }
 });
 
 // This schema defines a movie document in the database
@@ -25,7 +25,7 @@ const movieSchema = new mongoose.Schema({
   Searches: Number,          // Top searches (optional)
   Image: [String],               // URL to the movie poster image
   Video: String,               // URL to the movie video file
-  Reviews: [reviewSchema]       // List of reviews for this movie
+  Reviews: [reviewSchema]
 });
 
 // Export the Movie model, using the 'movies' collection in MongoDB

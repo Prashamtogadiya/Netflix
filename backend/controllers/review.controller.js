@@ -1,4 +1,5 @@
 const Movie = require('../models/Movie');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 // Add a review to a movie
@@ -24,13 +25,15 @@ exports.addReview = async (req, res) => {
     });
     await movie.save();
 
-    res.status(201).json({ message: 'Review added', reviews: movie.Reviews });
+    // Populate the user info for the new review
+    const populatedMovie = await Movie.findById(movieId).populate('Reviews.user', 'name');
+    res.status(201).json({ message: 'Review added', reviews: populatedMovie.Reviews });
   } catch (err) {
     res.status(500).json({ message: 'Failed to add review', error: err.message });
   }
 };
 
-// Get all reviews for a movie
+// Get all reviews for a movie (with user info)
 exports.getReviews = async (req, res) => {
   try {
     const { movieId } = req.params;

@@ -26,6 +26,15 @@ const generateTokens = (user) => {
   return { accessToken, refreshToken };
 };
 
+// Helper for cookie options
+const isProd = process.env.NODE_ENV === "production";
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: isProd ? "strict" : "lax",
+  secure: isProd, // only true in production (HTTPS)
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+};
+
 // Controller for user signup/registration
 exports.signup = async (req, res) => {
   // Destructure email, password, and name from request body
@@ -46,8 +55,8 @@ exports.signup = async (req, res) => {
     await user.save();
 
     // Set tokens as HTTP-only cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'strict' });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' });
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
     // Respond with success and user ID
     res.status(201).json({ message: 'User created', userId: user._id });
   } catch (err) {
@@ -79,8 +88,8 @@ exports.login = async (req, res) => {
     await user.save();
 
     // Set tokens as HTTP-only cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'strict' });
-    res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' });
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
     // Respond with success and user ID
     res.status(200).json({ message: 'Login successful', userId: user._id });
   } catch (err) {
@@ -132,8 +141,8 @@ exports.refresh = async (req, res) => {
     await user.save();
 
     // Set new tokens as HTTP-only cookies
-    res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'strict' });
-    res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: 'strict' });
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', newRefreshToken, cookieOptions);
     // Respond with success
     res.status(200).json({ message: 'Token refreshed' });
   } catch (err) {
@@ -173,8 +182,8 @@ exports.checkAuth = async (req, res) => {
         await user.save();
 
         // Set new tokens as HTTP-only cookies
-        res.cookie('accessToken', newAccessToken, { httpOnly: true, sameSite: 'strict' });
-        res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: 'strict' });
+        res.cookie('accessToken', newAccessToken, cookieOptions);
+        res.cookie('refreshToken', newRefreshToken, cookieOptions);
 
         return res.json({ authenticated: true, userId: user._id, email: user.email });
       } catch (err) {
