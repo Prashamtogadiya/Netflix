@@ -56,6 +56,7 @@ export default function DashboardPage() {
   };
 
   const actionMovies = movies.filter((movie) => movie.Genre.includes("Action"));
+  const dramaMovies = movies.filter((movie) => movie.Genre.includes("Drama"));
 
   if (!profile) return null;
   if (loading) return <NetflixLoader />;
@@ -63,11 +64,14 @@ export default function DashboardPage() {
   // For main carousel
   const maxStartIdx = Math.max(0, movies.length - VISIBLE_COUNT);
   const handlePrev = () => setStartIdx((prev) => Math.max(prev - SHIFT_BY, 0));
-  const handleNext = () => setStartIdx((prev) => Math.min(prev + SHIFT_BY, maxStartIdx));
+  const handleNext = () =>
+    setStartIdx((prev) => Math.min(prev + SHIFT_BY, maxStartIdx));
 
   // For hero carousel
-  const handleHeroPrev = () => setHeroIdx((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
-  const handleHeroNext = () => setHeroIdx((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
+  const handleHeroPrev = () =>
+    setHeroIdx((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
+  const handleHeroNext = () =>
+    setHeroIdx((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -111,12 +115,20 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold mb-4">Popular Actors</h2>
         <ActorCarousel movies={movies} />
       </section>
+
+      {/* Fourth Carousel: Action Movies */}
       <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Action Movies</h2>
         <MovieCarousel movies={actionMovies} />
       </section>
 
-      <Footer/>
+      {/* Fifth Carousel: Drama Movies */}
+      <section className="px-8 mt-8">
+        <h2 className="text-2xl font-bold mb-4">Drama Movies</h2>
+        <MovieCarousel movies={dramaMovies} />
+      </section>
+
+      <Footer />
     </div>
   );
 }
