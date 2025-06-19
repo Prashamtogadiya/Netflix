@@ -1,6 +1,14 @@
 import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Helper to convert runtime in minutes to "Xh Ym" format
+function formatRuntime(runtime) {
+  if (!runtime || isNaN(runtime)) return "N/A";
+  const hours = Math.floor(runtime / 60);
+  const minutes = runtime % 60;
+  return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
+}
+
 export default function MovieCarousel({ movies }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
@@ -10,13 +18,13 @@ export default function MovieCarousel({ movies }) {
 
   const handlePrev = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -scrollBy, behavior: "smooth" });
+      scrollRef.current.scrollLeft -= scrollBy;
     }
   };
 
   const handleNext = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: scrollBy, behavior: "smooth" });
+      scrollRef.current.scrollLeft += scrollBy;
     }
   };
 
@@ -97,7 +105,7 @@ export default function MovieCarousel({ movies }) {
                 <span>·</span>
                 <span>{movie.Year}</span>
                 <span>·</span>
-                <span>{movie.Runtime || "N/A"}</span>
+                <span>{formatRuntime(movie.Runtime)}</span>
               </div>
             </div>
           </div>
