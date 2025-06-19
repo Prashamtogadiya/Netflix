@@ -326,16 +326,16 @@ export default function MovieDetailPage() {
         <div className="flex items-center gap-4 mb-6">
           {inMyList ? (
             <button
-              className="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white rounded-full w-12 h-12 transition border-2 border-white"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
               title="Remove from My List"
               onClick={handleRemoveFromMyList}
               disabled={listLoading}
             >
               <svg
-                className="w-7 h-7"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2.5"
                 viewBox="0 0 24 24"
               >
                 <path
@@ -344,19 +344,20 @@ export default function MovieDetailPage() {
                   strokeLinejoin="round"
                 />
               </svg>
+              <span>Remove</span>
             </button>
           ) : (
             <button
-              className="flex items-center justify-center bg-black/80 hover:bg-gray-900 text-white rounded-full w-12 h-12 transition border-2 border-white"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
               title="Add to My List"
               onClick={handleAddToMyList}
               disabled={listLoading}
             >
               <svg
-                className="w-7 h-7"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="3"
+                strokeWidth="2.5"
                 viewBox="0 0 24 24"
               >
                 <path
@@ -365,6 +366,7 @@ export default function MovieDetailPage() {
                   strokeLinejoin="round"
                 />
               </svg>
+              <span>My List</span>
             </button>
           )}
         </div>
@@ -394,7 +396,11 @@ export default function MovieDetailPage() {
         ) : myListMovies.length === 0 ? (
           <div className="text-gray-400 py-8">No movies in your list yet.</div>
         ) : (
-          <MovieCarousel movies={myListMovies} visibleCount={5} cardWidth={340} />
+          <MovieCarousel
+            movies={myListMovies}
+            visibleCount={5}
+            cardWidth={340}
+          />
         )}
       </div>
 

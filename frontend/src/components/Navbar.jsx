@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 export default function Navbar({ profile, profileURL, onLogout }) {
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const location = useLocation();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -34,12 +36,15 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         />
       </div>
       <div className="flex items-center gap-8">
-        <a
-          href="/dashboard"
-          className="text-white font-semibold hover:text-red-500 transition"
-        >
-          Home
-        </a>
+        {/* Only show Home if not on /dashboard */}
+        {location.pathname !== "/dashboard" && (
+          <a
+            href="/dashboard"
+            className="text-white font-semibold hover:text-red-500 transition"
+          >
+            Home
+          </a>
+        )}
         <a
           href="/profiles"
           className="text-white font-semibold hover:text-red-500 transition"
