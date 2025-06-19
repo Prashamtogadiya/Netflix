@@ -25,9 +25,13 @@ export default function Navbar({ profile, profileURL, onLogout }) {
   return (
     <nav className="flex items-center justify-between px-8 py-4 bg-transparent fixed w-full z-20">
       <div className="flex items-center gap-8">
-        <span className="text-3xl font-extrabold text-red-600 tracking-wide">
-          NETFLIX
-        </span>
+        {/* Netflix logo with transparent background */}
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg"
+          className="h-16 w-25"
+          alt="Netflix"
+          style={{ background: "transparent" }}
+        />
       </div>
       <div className="flex items-center gap-8">
         <a

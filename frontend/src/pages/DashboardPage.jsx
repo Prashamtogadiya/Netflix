@@ -117,16 +117,55 @@ export default function DashboardPage() {
 // Carousel component for all movies
 function MovieCarouselSimple({ movies }) {
   const navigate = useNavigate();
+  const scrollRef = React.useRef(null);
+  const scrollBy = 336; // 320px + 16px gap
+
+  const handlePrev = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft -= scrollBy;
+    }
+  };
+
+  const handleNext = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft += scrollBy;
+    }
+  };
 
   return (
     <div className="relative px-4">
+      {/* Prev Button */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
+        style={{ minWidth: 32 }}
+      >
+        &#8592;
+      </button>
+      {/* Next Button */}
+      <button
+        onClick={handleNext}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
+        style={{ minWidth: 32 }}
+      >
+        &#8594;
+      </button>
       <div
-        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide py-4"
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 pl-6 pr-6"
         style={{
           scrollbarWidth: "none", // Firefox
           msOverflowStyle: "none", // IE/Edge
         }}
       >
+        {/* Hide scrollbar for Chrome, Safari, Opera */}
+        <style>
+          {`
+            .scrollbar-hide::-webkit-scrollbar {
+              display: none !important;
+            }
+          `}
+        </style>
         {movies.length === 0 && (
           <div className="text-gray-400">No movies found.</div>
         )}
@@ -148,7 +187,6 @@ function MovieCarouselSimple({ movies }) {
                 className="object-cover w-full h-full"
               />
             </div>
-
             {/* Movie info */}
             <div className="w-full flex flex-col items-start px-4 py-3">
               <h3 className="text-lg font-bold mb-1 truncate w-full">{movie.Title}</h3>
@@ -187,15 +225,55 @@ function ActorCarousel({ movies }) {
     }
   });
 
+  const scrollRef = React.useRef(null);
+  const scrollBy = 136; // 120px + 16px gap
+
+  const handlePrev = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft-= scrollBy;
+    }
+  };
+
+  const handleNext = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft+= scrollBy;
+    }
+  };
+
   return (
     <div className="relative px-4">
+      {/* Prev Button */}
+      <button
+        onClick={handlePrev}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
+        style={{ minWidth: 32 }}
+      >
+        &#8592;
+      </button>
+      {/* Next Button */}
+      <button
+        onClick={handleNext}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
+        style={{ minWidth: 32 }}
+      >
+        &#8594;
+      </button>
       <div
-        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 scrollbar-hide"
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 hide-scrollbar"
         style={{
           scrollbarWidth: "none", // Firefox
           msOverflowStyle: "none", // IE/Edge
         }}
       >
+        {/* Hide scrollbar for Chrome, Safari, Opera */}
+        <style>
+          {`
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none !important;
+            }
+          `}
+        </style>
         {actorList.length === 0 && (
           <div className="text-gray-400">No actors found.</div>
         )}
