@@ -21,11 +21,13 @@ const movieSchema = new mongoose.Schema({
   Genre: [String],              // Genres of the movie
   Awards: String,               // Awards won by the movie
   Types: [String],   
-  Rating:Number,           // Types/categories (e.g., "Movie", "Series")
+  Rating:String,           // Types/categories (e.g., "Movie", "Series")
   Searches: Number,          // Top searches (optional)
   Image: [String],               // URL to the movie poster image
   Video: String,               // URL to the movie video file
-  Reviews: [reviewSchema]
+  Reviews: [reviewSchema],
+  Runtime:Number,
+  ActorImage:[String]
 });
 
 // Export the Movie model, using the 'movies' collection in MongoDB
