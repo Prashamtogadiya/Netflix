@@ -25,7 +25,7 @@ export default function MovieCarousel({ movies }) {
       {/* Prev Button */}
       <button
         onClick={handlePrev}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block"
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block cursor-pointer"
         style={{ minWidth: 40 }}
         aria-label="Scroll left"
       >
@@ -34,7 +34,7 @@ export default function MovieCarousel({ movies }) {
       {/* Next Button */}
       <button
         onClick={handleNext}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block"
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block cursor-pointer"
         style={{ minWidth: 40 }}
         aria-label="Scroll right"
       >
@@ -62,7 +62,7 @@ export default function MovieCarousel({ movies }) {
         {movies.map((movie) => (
           <div
             key={movie._id}
-            className="snap-start min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 cursor-pointer"
+            className="snap-start min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 truncate cursor-pointer"
             onClick={() => navigate(`/movies/${movie._id}`)}
             onMouseEnter={(e) =>
               (e.currentTarget.style.transform = "scale(1.07)")

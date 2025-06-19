@@ -45,6 +45,12 @@ export default function Navbar({ profile, profileURL, onLogout }) {
           </a>
         )}
         <a
+          href="/tvshows"
+          className="text-white font-semibold hover:text-red-500 transition"
+        >
+          TV Shows
+        </a>
+        <a
           href="/movies"
           className="text-white font-semibold hover:text-red-500 transition"
         >
@@ -56,12 +62,7 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         >
           My List
         </a>
-        <a
-          href="/profiles"
-          className="text-white font-semibold hover:text-red-500 transition"
-        >
-          New & Popular
-        </a>
+        
       </div>
       <div className="flex items-center gap-4 relative">
         {/* Profile avatar with dropdown */}

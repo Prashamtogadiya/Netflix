@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 export default function HeroCarousel({ movie, onPrev, onNext }) {
   const navigate = useNavigate();
-  
+
   return (
     <section className="relative w-full h-[60vw] min-h-[400px] max-h-[729px] flex items-end justify-start overflow-hidden">
       {/* Background image */}
@@ -27,9 +27,7 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
             className="w-10 h-5 object-contain"
             style={{ background: "transparent" }}
           />
-          <span className="text-lg font-semibold">
-            {movie.Rating || "N/A"}
-          </span>
+          <span className="text-lg font-semibold">{movie.Rating || "N/A"}</span>
           <span className="text-lg font-semibold">·</span>
           <span className="text-lg font-semibold">{movie.Title}</span>
           <span className="text-lg font-semibold">·</span>
@@ -42,17 +40,34 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
             className="flex items-center justify-center bg-black/80 hover:bg-gray-900 text-white rounded-full w-10 h-10 transition "
             title="Download"
           >
-            <svg className="w-5 h-5 opacity-80" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 16V4m0 12l-4-4m4 4l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-              <rect x="6" y="18" width="12" height="2" rx="1" fill="currentColor"/>
+            <svg
+              className="w-5 h-5 opacity-80"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 16V4m0 12l-4-4m4 4l4-4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <rect
+                x="6"
+                y="18"
+                width="12"
+                height="2"
+                rx="1"
+                fill="currentColor"
+              />
             </svg>
           </button>
           {/* Watch Now button */}
           <button
             className="flex items-center gap-2 bg-white text-black font-bold cursor-pointer px-6 py-2 rounded-full hover:bg-gray-200 transition w-fit"
             style={{ letterSpacing: "0.5px" }}
-                                    onClick={() => navigate(`/movies/${movie._id}`)}
-
+            onClick={() => navigate(`/movies/${movie._id}`)}
           >
             <svg className="w-5 h-5 fill-black" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
@@ -64,8 +79,18 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
             className="flex items-center justify-center bg-black/80 hover:bg-gray-900 text-white rounded-full w-10 h-10 transition"
             title="Add to My List"
           >
-            <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" />
+            <svg
+              className="w-5 h-5 opacity-80"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 5v14M5 12h14"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
             </svg>
           </button>
         </div>

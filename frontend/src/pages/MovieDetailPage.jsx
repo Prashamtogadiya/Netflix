@@ -129,9 +129,7 @@ export default function MovieDetailPage() {
     setListLoading(false);
   };
 
-  const actionMovies = movies.filter((m) =>
-    m.Genre?.includes("Action")
-  );
+  const actionMovies = movies.filter((m) => m.Genre?.includes("Action"));
 
   if (loading) return <NetflixLoader />;
   if (!movie) {
@@ -157,15 +155,12 @@ export default function MovieDetailPage() {
         onLogout={handleLogout}
       />
       {/* Video Player */}
-      <div className="w-full flex justify-center bg-black pt-20 pb-8">
-        <div className="w-full max-w-4xl aspect-video rounded-lg overflow-hidden shadow-lg">
+      <div className="pt-18">
+        <div className="w-full h-[calc(100vh-64px)] bg-gray-950">
           <iframe
-            width="560"
-            height="315"
-            src="https://www.youtube.com/embed/d9MyW72ELq0?si=03ZmCfriWvOx2tGj"
+            src={movie.Video}
             title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerpolicy="strict-origin-when-cross-origin"
             className="w-full h-full"
             allowFullScreen
           ></iframe>
@@ -280,4 +275,3 @@ export default function MovieDetailPage() {
     </div>
   );
 }
-  
