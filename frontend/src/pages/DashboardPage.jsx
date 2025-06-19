@@ -55,6 +55,8 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
+  const actionMovies = movies.filter((movie) => movie.Genre.includes("Action"));
+
   if (!profile) return null;
   if (loading) return <NetflixLoader />;
 
@@ -108,6 +110,10 @@ export default function DashboardPage() {
       <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular Actors</h2>
         <ActorCarousel movies={movies} />
+      </section>
+      <section className="px-8 mt-8">
+        <h2 className="text-2xl font-bold mb-4">Action Movies</h2>
+        <MovieCarousel movies={actionMovies} />
       </section>
 
       <Footer/>

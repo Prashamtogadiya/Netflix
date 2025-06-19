@@ -21,8 +21,7 @@ export default function Navbar({ profile, profileURL, onLogout }) {
 
   // Prevent error if profile or profile.name is undefined
   const safeProfileName = profile && profile.name ? profile.name : "Profile";
-  const safeProfileURL =
-    profileURL || "https://placehold.co/120x120?text=User";
+  const safeProfileURL = profileURL || "https://placehold.co/120x120?text=User";
 
   return (
     <nav className="flex items-center justify-between px-8 py-4 bg-transparent fixed w-full z-20">
@@ -46,12 +45,6 @@ export default function Navbar({ profile, profileURL, onLogout }) {
           </a>
         )}
         <a
-          href="/profiles"
-          className="text-white font-semibold hover:text-red-500 transition"
-        >
-          Profiles
-        </a>
-        <a
           href="/movies"
           className="text-white font-semibold hover:text-red-500 transition"
         >
@@ -71,26 +64,6 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         </a>
       </div>
       <div className="flex items-center gap-4 relative">
-        {/* Notification Button */}
-        <button
-          className="relative bg-black/60 hover:bg-black rounded-full p-2 transition"
-          aria-label="Notifications"
-        >
-          {/* Netflix-style bell icon */}
-          <svg
-            className="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-            />
-          </svg>
-        </button>
         {/* Profile avatar with dropdown */}
         <div className="relative" ref={dropdownRef}>
           <img
@@ -113,6 +86,12 @@ export default function Navbar({ profile, profileURL, onLogout }) {
                   onClick={() => setDropdown(false)}
                 >
                   My Profile
+                </a>
+                <a
+                  href="/profiles"
+                  className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
+                >
+                  Profiles
                 </a>
                 <hr className="h-px bg-gray-200 border-0 dark:bg-gray-700" />
 
