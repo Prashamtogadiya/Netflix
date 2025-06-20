@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { clearUser } from "../features/user/userSlice";
 import { useNavigate } from "react-router-dom";
+import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 import api from "../api";
 import MovieCarousel from "../components/MovieCarousel";
@@ -31,7 +31,7 @@ export default function DashboardPage() {
   // Fetch movies on mount
   useEffect(() => {
     setLoading(true);
-    const MIN_LOADING_TIME = 4000; // 1 second
+    const MIN_LOADING_TIME = 1500; // 1 second
     const startTime = Date.now();
 
     api

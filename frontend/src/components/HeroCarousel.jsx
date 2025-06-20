@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 export default function HeroCarousel({ movie, onPrev, onNext }) {
   const navigate = useNavigate();
+
+  // Auto-advance to next movie every 6 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onNext && onNext();
+    }, 6000);
+    return () => clearTimeout(timer);
+  }, [movie, onNext]);
 
   return (
     <section className="relative w-full h-[60vw] min-h-[400px] max-h-[729px] flex items-end justify-start overflow-hidden">

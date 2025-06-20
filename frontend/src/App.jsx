@@ -12,6 +12,7 @@ import RedirectIfAuth from "./components/RedirectIfAuth";
 import { useDispatch } from "react-redux";
 import { setSelectedProfile } from "./features/profiles/profileSlice";
 import { setUser } from "./features/user/userSlice";
+import Movies from "./pages/Movies";
 
 function App() {
   const dispatch = useDispatch();
@@ -98,6 +99,14 @@ function App() {
           element={
             <RequireAuth>
               <MyListPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/movies"
+          element={
+            <RequireAuth>
+              <Movies />
             </RequireAuth>
           }
         />

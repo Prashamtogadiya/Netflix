@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector,useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import api from "../api";
 import Navbar from "../components/Navbar";
-import MovieCarousel from "../components/MovieCarousel";
+import MyListCarousel from "../components/MyListCarousel";
 import NetflixLoader from "../components/NetflixLoader";
 import Footer from "../components/Footer";
 import { clearUser } from "../features/user/userSlice";
@@ -15,16 +15,23 @@ export default function MyListPage() {
     profile?.avatar || "https://placehold.co/120x120?text=User";
   const [myListMovies, setMyListMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   useEffect(() => {
     if (!profile) return;
     setLoading(true);
+    const MIN_LOADING_TIME = 1000; // 1 second
+    const startTime = Date.now();
+
     api
       .get(`/profiles/${profile._id}/mylist`)
       .then((res) => setMyListMovies(res.data.myList || []))
       .catch(() => setMyListMovies([]))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+        setTimeout(() => setLoading(false), remaining);
+      });
   }, [profile]);
 
   const handleLogout = async () => {
@@ -53,11 +60,7 @@ export default function MyListPage() {
             No movies in your list yet.
           </div>
         ) : (
-          <MovieCarousel
-            movies={myListMovies}
-            visibleCount={5}
-            cardWidth={340}
-          />
+          <MyListCarousel movies={myListMovies} />
         )}
       </div>
       <Footer />
