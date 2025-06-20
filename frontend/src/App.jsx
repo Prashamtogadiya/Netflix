@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { setSelectedProfile } from "./features/profiles/profileSlice";
 import { setUser } from "./features/user/userSlice";
 import Movies from "./pages/Movies";
+import AllMoviesPage from "./pages/AllMoviesPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -107,6 +108,14 @@ function App() {
           element={
             <RequireAuth>
               <Movies />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/allmovies"
+          element={
+            <RequireAuth>
+              <AllMoviesPage />
             </RequireAuth>
           }
         />

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Helper to convert runtime in minutes to "Xh Ym" format
@@ -9,9 +9,10 @@ function formatRuntime(runtime) {
   return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
 }
 
-export default function MovieCarousel({ movies }) {
+export default function MovieCarousel({ movies, category }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
+  const [atEnd, setAtEnd] = useState(false);
 
   // Scroll by one card width (320px + 16px gap)
   const scrollBy = 336;
@@ -19,12 +20,58 @@ export default function MovieCarousel({ movies }) {
   const handlePrev = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft -= scrollBy;
+      setAtEnd(false);
     }
   };
 
   const handleNext = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft += scrollBy;
+      setTimeout(() => {
+        if (
+          scrollRef.current.scrollLeft + scrollRef.current.clientWidth >=
+          scrollRef.current.scrollWidth - 10
+        ) {
+          setAtEnd(true);
+        }
+      }, 200);
+    }
+  };
+
+  const handleScroll = () => {
+    if (
+      scrollRef.current.scrollLeft + scrollRef.current.clientWidth >=
+      scrollRef.current.scrollWidth - 10
+    ) {
+      setAtEnd(true);
+    } else {
+      setAtEnd(false);
+    }
+  };
+
+  // Try to infer category if not passed
+  let inferredCategory = category;
+  if (!inferredCategory && movies && movies.length > 0) {
+    // If all movies have the same genre, use that
+    const allGenres = movies.flatMap((m) =>
+      Array.isArray(m.Genre) ? m.Genre : []
+    );
+    const genreCounts = {};
+    allGenres.forEach((g) => {
+      if (g) genreCounts[g] = (genreCounts[g] || 0) + 1;
+    });
+    const sorted = Object.entries(genreCounts).sort((a, b) => b[1] - a[1]);
+    if (sorted.length > 0 && sorted[0][1] === movies.length) {
+      inferredCategory = sorted[0][0];
+    }
+  }
+
+  // Handler for "View More" navigation
+  const handleViewMore = () => {
+    if (inferredCategory) {
+      navigate(`/allmovies?category=${encodeURIComponent(inferredCategory)}`);
+    } else {
+      navigate("/allmovies");
     }
   };
 
@@ -39,17 +86,28 @@ export default function MovieCarousel({ movies }) {
       >
         &#8592;
       </button>
-      {/* Next Button */}
-      <button
-        onClick={handleNext}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block cursor-pointer"
-        style={{ minWidth: 40 }}
-        aria-label="Scroll right"
-      >
-        &#8594;
-      </button>
+      {/* Next Button or View More */}
+      {!atEnd ? (
+        <button
+          onClick={handleNext}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block cursor-pointer"
+          style={{ minWidth: 40 }}
+          aria-label="Scroll right"
+        >
+          &#8594;
+        </button>
+      ) : (
+        <button
+          onClick={handleViewMore}
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white font-semibold w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all text-xs tracking-tight hidden md:flex"
+          title="View More"
+        >
+          &gt;
+        </button>
+      )}
       <div
         ref={scrollRef}
+        onScroll={handleScroll}
         className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 hide-scrollbar pl-4 pr-4"
         style={{
           scrollbarWidth: "none", // Firefox
@@ -67,7 +125,7 @@ export default function MovieCarousel({ movies }) {
         {movies.length === 0 && (
           <div className="text-gray-400">No movies found.</div>
         )}
-        {movies.map((movie) => (
+        {movies.slice(0, 10).map((movie) => (
           <div
             key={movie._id}
             className="snap-start min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 truncate cursor-pointer"
@@ -75,9 +133,7 @@ export default function MovieCarousel({ movies }) {
             onMouseEnter={(e) =>
               (e.currentTarget.style.transform = "scale(1.07)")
             }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "scale(1)")
-            }
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
             style={{
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
