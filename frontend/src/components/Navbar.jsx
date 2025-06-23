@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import SearchBar from "./SearchBar";
 
 export default function Navbar({ profile, profileURL, onLogout }) {
   const [dropdown, setDropdown] = useState(false);
@@ -65,6 +66,9 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         
       </div>
       <div className="flex items-center gap-4 relative">
+        <div>
+          <SearchBar/>
+        </div>
         {/* Profile avatar with dropdown */}
         <div className="relative" ref={dropdownRef}>
           <img

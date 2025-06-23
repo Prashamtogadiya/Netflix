@@ -80,3 +80,23 @@ exports.deleteMovie = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete movie', error: err.message });
   }
 };
+
+
+
+exports.searchMoviessByPrefix = async (req, res) => {
+  try {
+    const q = req.query.q;
+    if (!q) return res.json([]);
+    // Case-insensitive prefix search on name or category
+    const regex = new RegExp('^' + q, 'i');
+    const movies = await Movie.find({
+      $or: [
+        { Title: { $regex: regex } },
+        { Genre: { $regex: regex } }
+      ]
+    });
+    res.json(movies);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

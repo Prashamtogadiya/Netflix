@@ -1,10 +1,13 @@
 // Import express for routing
 const express = require('express');
 // Import movie controllers
-const { createMovie, getMovies, getMovieById, updateMovie, deleteMovie } = require('../controllers/movie.controller.js');
+const { createMovie, getMovies, getMovieById, updateMovie, deleteMovie, searchMoviessByPrefix } = require('../controllers/movie.controller.js');
 // Import authentication middleware (optional, for protected routes)
 const { authenticate } = require('../middlewares/auth.middleware.js');
 const router = express.Router();
+
+
+router.get('/search',searchMoviessByPrefix );
 
 // Route to create a new movie (protected, e.g., admin only)
 router.post('/', authenticate, createMovie);

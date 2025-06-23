@@ -48,6 +48,11 @@ export default function Movies() {
 
   const actionMovies = movies.filter((movie) => movie.Genre.includes("Action"));
   const dramaMovies = movies.filter((movie) => movie.Genre.includes("Drama"));
+  
+  const adventureMovies = movies.filter((movie) => movie.Genre.includes("Adventure"));
+
+const crimeMovies = movies.filter((movie) => movie.Genre.includes("Crime"));
+const comedyMovies = movies.filter((movie) => movie.Genre.includes("Comedy"));
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
   if (loading) return <NetflixLoader />;
@@ -75,6 +80,18 @@ export default function Movies() {
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Drama Movies</h2>
           <MovieCarousel movies={dramaMovies} category="Drama" />
+        </section>
+        <section className="w-full max-w-7xl px-8 mt-8">
+          <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
+          <MovieCarousel movies={crimeMovies} category="Crime" />
+        </section>
+        <section className="w-full max-w-7xl px-8 mt-8">
+          <h2 className="text-2xl font-bold mb-4">Adventure Movies</h2>
+          <MovieCarousel movies={adventureMovies} category="Adventure" />
+        </section>
+        <section className="w-full max-w-7xl px-8 mt-8">
+          <h2 className="text-2xl font-bold mb-4">Comedy Movies</h2>
+          <MovieCarousel movies={comedyMovies} category="Comedy" />
         </section>
       </div>
       <Footer />

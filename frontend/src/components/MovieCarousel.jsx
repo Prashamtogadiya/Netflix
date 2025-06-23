@@ -99,7 +99,7 @@ export default function MovieCarousel({ movies, category }) {
       ) : (
         <button
           onClick={handleViewMore}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white font-semibold w-12 h-12 rounded-full flex items-center justify-center shadow-md transition-all text-xs tracking-tight hidden md:flex"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/10 hover:bg-white/20 text-white font-semibold w-12 h-12 rounded-full  items-center justify-center shadow-md transition-all text-xs tracking-tight hidden md:flex"
           title="View More"
         >
           &gt;

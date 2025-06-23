@@ -36,7 +36,16 @@ export default function DashboardPage() {
 
     api
       .get("/movies")
-      .then((res) => setMovies(res.data))
+      .then((res) => {
+        // Defensive: ensure movies is always an array
+        if (Array.isArray(res.data)) {
+          setMovies(res.data);
+        } else if (res.data && Array.isArray(res.data.movies)) {
+          setMovies(res.data.movies);
+        } else {
+          setMovies([]);
+        }
+      })
       .catch(() => setMovies([]))
       .finally(() => {
         const elapsed = Date.now() - startTime;
@@ -55,23 +64,44 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
-  const actionMovies = movies.filter((movie) => movie.Genre.includes("Action"));
-  const dramaMovies = movies.filter((movie) => movie.Genre.includes("Drama"));
+  // Defensive: always use an array for filtering
+  const safeMovies = Array.isArray(movies) ? movies : [];
+  const actionMovies = safeMovies.filter(
+    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Action")
+  );
+  const dramaMovies = safeMovies.filter(
+    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Drama")
+  );
+
+  const adventureMovies = safeMovies.filter(
+    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Adventure")
+  );
+
+const crimeMovies = safeMovies.filter(
+    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Crime")
+  );
+const comedyMovies = safeMovies.filter(
+    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Comedy")
+  );
+  // const mostSearchedMovies = safeMovies
+  //   .filter((movie) => movie.Searches)
+  //   .sort((a, b) => b.Searches - a.Searches)
+  //   .slice(0, 10);
 
   if (!profile) return null;
   if (loading) return <NetflixLoader />;
 
   // For main carousel
-  const maxStartIdx = Math.max(0, movies.length - VISIBLE_COUNT);
+  const maxStartIdx = Math.max(0, safeMovies.length - VISIBLE_COUNT);
   const handlePrev = () => setStartIdx((prev) => Math.max(prev - SHIFT_BY, 0));
   const handleNext = () =>
     setStartIdx((prev) => Math.min(prev + SHIFT_BY, maxStartIdx));
 
   // For hero carousel
   const handleHeroPrev = () =>
-    setHeroIdx((prev) => (prev === 0 ? movies.length - 1 : prev - 1));
+    setHeroIdx((prev) => (prev === 0 ? safeMovies.length - 1 : prev - 1));
   const handleHeroNext = () =>
-    setHeroIdx((prev) => (prev === movies.length - 1 ? 0 : prev + 1));
+    setHeroIdx((prev) => (prev === safeMovies.length - 1 ? 0 : prev + 1));
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -82,9 +112,9 @@ export default function DashboardPage() {
       />
 
       {/* Hero Carousel */}
-      {movies.length > 0 && (
+      {safeMovies.length > 0 && (
         <HeroCarousel
-          movie={movies[heroIdx]}
+          movie={safeMovies[heroIdx]}
           onPrev={handleHeroPrev}
           onNext={handleHeroNext}
         />
@@ -94,7 +124,7 @@ export default function DashboardPage() {
       <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular on Netflix</h2>
         <MovieCarousel
-          movies={movies}
+          movies={safeMovies}
           visibleCount={VISIBLE_COUNT}
           cardWidth={CARD_WIDTH}
           startIdx={startIdx}
@@ -107,13 +137,13 @@ export default function DashboardPage() {
       {/* Second Carousel: All Movies */}
       <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">All Movies</h2>
-        <MovieCarouselSimple movies={movies} />
+        <MovieCarouselSimple movies={safeMovies} />
       </section>
 
       {/* Third Carousel: Actors */}
       <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular Actors</h2>
-        <ActorCarousel movies={movies} />
+        <ActorCarousel movies={safeMovies} />
       </section>
 
       {/* Fourth Carousel: Action Movies */}
@@ -127,6 +157,22 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold mb-4">Drama Movies</h2>
         <MovieCarousel movies={dramaMovies} />
       </section>
+
+      <section className="px-8 mt-8">
+        <h2 className="text-2xl font-bold mb-4">Adventure Movies</h2>
+        <MovieCarousel movies={adventureMovies} />
+      </section>
+
+<section className="px-8 mt-8">
+        <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
+        <MovieCarousel movies={crimeMovies} />
+      </section>
+
+<section className="px-8 mt-8">
+        <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
+        <MovieCarousel movies={comedyMovies} />
+      </section>
+
 
       <Footer />
     </div>

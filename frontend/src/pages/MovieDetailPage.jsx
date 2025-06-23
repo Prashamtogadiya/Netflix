@@ -84,6 +84,23 @@ export default function MovieDetailPage() {
       .finally(() => setListLoading(false));
   }, [profile, movie?._id]);
 
+  // Fetch all movies for filtering options (e.g., similar movies, popular)
+  useEffect(() => {
+    api
+      .get("/movies")
+      .then((res) => {
+        // Defensive: ensure movies is always an array
+        if (Array.isArray(res.data)) {
+          setMovies(res.data);
+        } else if (res.data && Array.isArray(res.data.movies)) {
+          setMovies(res.data.movies);
+        } else {
+          setMovies([]);
+        }
+      })
+      .catch(() => setMovies([]));
+  }, []);
+
   const handleLogout = async () => {
     await api.post("/auth/logout");
     dispatch(clearUser());
@@ -129,7 +146,10 @@ export default function MovieDetailPage() {
     setListLoading(false);
   };
 
-  const actionMovies = movies.filter((m) => m.Genre?.includes("Action"));
+  // Defensive: always use an array for filtering
+  const safeMovies = Array.isArray(movies) ? movies : [];
+  // Use safeMovies.filter(...) everywhere instead of movies.filter(...)
+  const actionMovies = safeMovies.filter((m) => m.Genre?.includes("Action"));
 
   if (loading) return <NetflixLoader />;
   if (!movie) {
