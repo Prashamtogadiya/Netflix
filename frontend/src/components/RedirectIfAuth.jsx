@@ -18,17 +18,20 @@ export default function RedirectIfAuth({ children }) {
       api.get('/auth/check')
         .then(res => {
           if (res.data.authenticated) {
-            dispatch(setUser({ userId: res.data.userId, email: res.data.email }));
+            // Also store the user's role if available
+            dispatch(setUser({
+              userId: res.data.userId,
+              email: res.data.email,
+              role: res.data.role // <-- make sure backend sends this!
+            }));
             setIsAuth(true);
           } else {
             setIsAuth(false);
           }
         })
         .catch(err => {
-          // Suppress 401 error log for /auth/check (not logged in is normal)
           if (err.response && err.response.status !== 401) {
             // Optionally log other errors
-            // console.error(err);
           }
           setIsAuth(false);
         })

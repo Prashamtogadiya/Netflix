@@ -21,7 +21,12 @@ export default function SignupPage() {
 
   try {
     const res = await api.post('/auth/signup', form);
-    dispatch(setUser({ userId: res.data.userId, email: form.email }));
+    // Use backend response for email and role (not form.email)
+    dispatch(setUser({
+      userId: res.data.userId,
+      email: res.data.email,
+      role: res.data.role || "user"
+    }));
     const elapsed = Date.now() - start;
     const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
     setTimeout(() => navigate('/profiles'), remaining);

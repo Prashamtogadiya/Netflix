@@ -13,13 +13,13 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'refresh_secret
 const generateTokens = (user) => {
   // Create access token with userId and email, expires in 15 minutes
   const accessToken = jwt.sign(
-    { userId: user._id, email: user.email },
+    { userId: user._id, email: user.email,role: user.role },
     ACCESS_TOKEN_SECRET,
     { expiresIn: '15m' }
   );
   // Create refresh token with userId and email, expires in 7 days
   const refreshToken = jwt.sign(
-    { userId: user._id, email: user.email },
+    { userId: user._id, email: user.email,role: user.role },
     REFRESH_TOKEN_SECRET,
     { expiresIn: '7d' }
   );
@@ -38,7 +38,7 @@ const cookieOptions = {
 // Controller for user signup/registration
 exports.signup = async (req, res) => {
   // Destructure email, password, and name from request body
-  const { email, password, name } = req.body;
+  const { email, password, name, role } = req.body;
   try {
     // Check if a user with this email already exists
     const existingUser = await User.findOne({ email });
@@ -47,7 +47,7 @@ exports.signup = async (req, res) => {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
     // Create the user in the database
-    const user = await User.create({ email, password: hashedPassword, name });
+    const user = await User.create({ email, password: hashedPassword, name,role: role || 'user' });
 
     // Generate tokens and save refresh token in DB
     const { accessToken, refreshToken } = generateTokens(user);
@@ -58,14 +58,18 @@ exports.signup = async (req, res) => {
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
     // Respond with success and user ID
-    res.status(201).json({ message: 'User created', userId: user._id });
+    res.status(201).json({
+      message: 'User created',
+      userId: user._id,
+      email: user.email,
+      role: user.role
+    });
   } catch (err) {
     // Handle errors
     res.status(500).json({ message: 'Signup failed', error: err.message });
   }
 };
 
-// Controller for user login
 exports.login = async (req, res) => {
   // Destructure email and password from request body
   const { email, password } = req.body;
@@ -74,8 +78,8 @@ exports.login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user by email (case-insensitive)
+    const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, "i") } });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
     // Compare password with hashed password in DB
@@ -91,7 +95,12 @@ exports.login = async (req, res) => {
     res.cookie('accessToken', accessToken, cookieOptions);
     res.cookie('refreshToken', refreshToken, cookieOptions);
     // Respond with success and user ID
-    res.status(200).json({ message: 'Login successful', userId: user._id });
+    res.status(200).json({
+      message: 'Login successful',
+      userId: user._id,
+      email: user.email,
+      role: user.role
+    });
   } catch (err) {
     // Handle errors
     res.status(500).json({ message: 'Login failed', error: err.message });
@@ -160,9 +169,15 @@ exports.checkAuth = async (req, res) => {
     if (accessToken) {
       try {
         const payload = jwt.verify(accessToken, ACCESS_TOKEN_SECRET);
-        return res.json({ authenticated: true, userId: payload.userId, email: payload.email });
+        // Find user to get role
+        const user = await User.findById(payload.userId);
+        return res.json({
+          authenticated: true,
+          userId: payload.userId,
+          email: payload.email,
+          role: user?.role || "user"
+        });
       } catch (err) {
-        // If token expired, continue to refresh
         if (err.name !== "TokenExpiredError") {
           return res.status(401).json({ authenticated: false, message: "Invalid access token" });
         }
@@ -172,20 +187,22 @@ exports.checkAuth = async (req, res) => {
     if (refreshToken) {
       try {
         const payload = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
-        // Find user with matching ID and refresh token
         const user = await User.findOne({ _id: payload.userId, refreshToken });
         if (!user) return res.status(403).json({ authenticated: false, message: 'Invalid refresh token' });
 
-        // Generate new tokens and save new refresh token in DB
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } = generateTokens(user);
         user.refreshToken = newRefreshToken;
         await user.save();
 
-        // Set new tokens as HTTP-only cookies
         res.cookie('accessToken', newAccessToken, cookieOptions);
         res.cookie('refreshToken', newRefreshToken, cookieOptions);
 
-        return res.json({ authenticated: true, userId: user._id, email: user.email });
+        return res.json({
+          authenticated: true,
+          userId: user._id,
+          email: user.email,
+          role: user.role || "user"
+        });
       } catch (err) {
         return res.status(403).json({ authenticated: false, message: 'Invalid refresh token' });
       }

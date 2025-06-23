@@ -17,23 +17,18 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    const MIN_LOADING_TIME = 4000;
-    const startTime = Date.now();
     try {
       const res = await api.post("/auth/login", form);
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
-      setTimeout(() => {
-        dispatch(setUser({ userId: res.data.userId, email: form.email }));
-        navigate("/profiles");
-      }, remaining);
+      // Use backend response for email and role (not form.email)
+      dispatch(setUser({
+        userId: res.data.userId,
+        email: res.data.email,
+        role: res.data.role
+      }));
+      navigate("/profiles");
     } catch (err) {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
-      setTimeout(() => {
-        alert(err.response?.data?.message || "Login failed");
-        setLoading(false);
-      }, remaining);
+      alert(err.response?.data?.message || "Login failed");
+      setLoading(false);
     }
   };
 

@@ -14,6 +14,7 @@ import { setSelectedProfile } from "./features/profiles/profileSlice";
 import { setUser } from "./features/user/userSlice";
 import Movies from "./pages/Movies";
 import AllMoviesPage from "./pages/AllMoviesPage";
+import AdminPanelPage from "./pages/AdminPanelPage";
 
 function App() {
   const dispatch = useDispatch();
@@ -116,6 +117,14 @@ function App() {
           element={
             <RequireAuth>
               <AllMoviesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth adminOnly>
+              <AdminPanelPage />
             </RequireAuth>
           }
         />

@@ -7,6 +7,13 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   // User's hashed password, required
   password: { type: String, required: true },
+
+   // New field: Role for admin/user
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
   // User's display name, required
   name: { type: String, required: true },
   // Array of Profile ObjectIds belonging to this user

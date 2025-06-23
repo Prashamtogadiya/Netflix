@@ -22,3 +22,20 @@ exports.authenticate = (req, res, next) => {
     res.status(401).json({ message: 'Invalid token' });
   }
 };
+
+exports.verifyAdmin = (req, res, next) => {
+  const token = req.cookies.accessToken;
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
+  try {
+    const payload = jwt.verify(token, ACCESS_TOKEN_SECRET);
+    if (payload.role !== "admin") {
+      return res.status(403).json({ message: "Access denied: Admins only" });
+    }
+
+    req.user = payload; // store user info for use in route
+    next();
+  } catch (err) {
+    return res.status(403).json({ message: "Invalid token" });
+  }
+};
