@@ -67,7 +67,7 @@ const SearchBar = () => {
               onMouseDown={() => {
                 setShowDropdown(false);
                 setSearch("");
-                navigate(`/products/${movie._id}`, { state: { movie: movie } });
+                navigate(`/movies/${movie._id}`, { state: { movie: movie } });
               }}
             >
               <img
@@ -77,7 +77,10 @@ const SearchBar = () => {
               />
               <div className="flex flex-col">
                 <span className="text-white font-semibold">{movie.Title}</span>
-                <span className="text-xs text-gray-400">{movie.Genre}</span>
+                {movie.Genre.map((genre)=>{
+                  <span className="text-xs text-gray-400">{genre}</span>
+                })}
+                {/* <span className="text-xs text-gray-400">{movie.Genre}</span> */}
               </div>
             </div>
           ))}
