@@ -1,5 +1,5 @@
 import React from "react";
-
+import { useRef } from "react";
 export default function ActorCarousel({ movies }) {
   // Collect all actors and their images
   const actorList = [];
@@ -12,8 +12,8 @@ export default function ActorCarousel({ movies }) {
       }
   });
 
-  const scrollRef = React.useRef(null);
-  const scrollBy = 136; // 120px + 16px gap
+  const scrollRef = useRef(null);
+  const scrollBy = 136; 
 
   const handlePrev = () => {
     if (scrollRef.current) {

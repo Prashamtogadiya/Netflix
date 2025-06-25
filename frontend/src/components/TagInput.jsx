@@ -28,7 +28,6 @@ export default function TagInput({ label, values, setValues, placeholder }) {
               type="button"
               className="ml-1 text-white hover:text-gray-200"
               onClick={() => handleRemove(val)}
-              aria-label="Remove"
             >
               &times;
             </button>

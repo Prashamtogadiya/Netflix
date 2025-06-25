@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import api from "../api";
-import Navbar from "../components/Navbar";
 import NetflixLoader from "../components/NetflixLoader";
 import Footer from "../components/Footer";
 import MovieForm from "../components/MovieForm";
@@ -11,6 +10,27 @@ export default function AdminPanelPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | add | edit
   const [editMovie, setEditMovie] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [fetchingMore, setFetchingMore] = useState(false);
+  const observer = useRef();
+
+  const lastMovieRef = useCallback(
+    (node) => {
+      if (fetchingMore) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && visibleCount < movies.length) {
+          setFetchingMore(true);
+          setTimeout(() => {
+            setVisibleCount((prev) => prev + 40);
+            setFetchingMore(false);
+          }, 800); // Simulate loading delay
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [fetchingMore, visibleCount, movies.length]
+  );
 
   // Fetch all movies for admin management
   const fetchMovies = () => {
@@ -60,7 +80,6 @@ export default function AdminPanelPage() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
-      {/* Fixed Admin Navbar */}
       <AdminNavbar />
       <div className="flex flex-1 pt-24">
         {/* Sidebar - sticky instead of fixed, so it scrolls with the page and stops at the footer */}
@@ -105,38 +124,57 @@ export default function AdminPanelPage() {
                 <table className="min-w-full bg-gray-900 rounded-lg">
                   <thead>
                     <tr>
-                      <th className="px-4 py-2">Title</th>
-                      <th className="px-4 py-2">Year</th>
-                      <th className="px-4 py-2">Genre</th>
+                      <th className="px-4 py-2 border-r border-gray-800">Title</th>
+                      <th className="px-4 py-2 border-r border-gray-800">Year</th>
+                      <th className="px-4 py-2 border-r border-gray-800">Genre</th>
                       <th className="px-4 py-2">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {movies.map((movie) => (
-                      <tr key={movie._id} className="border-b border-gray-800">
-                        <td className="px-4 py-2">{movie.Title}</td>
-                        <td className="px-4 py-2">{movie.Year}</td>
-                        <td className="px-4 py-2">
-                          {Array.isArray(movie.Genre)
-                            ? movie.Genre.join(", ")
-                            : movie.Genre || ""}
-                        </td>
-                        <td className="px-4 py-2">
-                          <button
-                            onClick={() => handleEdit(movie)}
-                            className="text-blue-400 hover:underline mr-4"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(movie._id)}
-                            className="text-red-500 hover:underline"
-                          >
-                            Delete
-                          </button>
+                    {movies.slice(0, visibleCount).map((movie, index) => {
+                      const isLast = index === visibleCount - 1;
+                      return (
+                        <tr
+                          key={movie._id}
+                          ref={isLast ? lastMovieRef : null}
+                          className="border-b border-gray-800"
+                        >
+                          <td className="px-4 py-2 border-r border-gray-800">{movie.Title}</td>
+                          <td className="px-4 py-2 border-r border-gray-800">{movie.Year}</td>
+                          <td className="px-4 py-2 border-r border-gray-800">
+                            {Array.isArray(movie.Genre)
+                              ? movie.Genre.join(", ")
+                              : movie.Genre || ""}
+                          </td>
+                          <td className="px-4 py-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleEdit(movie)}
+                                className="text-blue-400 hover:underline"
+                              >
+                                Edit
+                              </button>
+                              <span className="h-5 border-l border-gray-700"></span>
+                              <button
+                                onClick={() => handleDelete(movie._id)}
+                                className="text-red-500 hover:underline"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {fetchingMore && (
+                      <tr>
+                        <td colSpan={4}>
+                          <div className="flex items-center justify-center py-6">
+                            <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                    )}
                     {movies.length === 0 && (
                       <tr>
                         <td
