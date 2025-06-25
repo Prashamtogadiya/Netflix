@@ -21,7 +21,6 @@ export default function SignupPage() {
 
   try {
     const res = await api.post('/auth/signup', form);
-    // Use backend response for email and role (not form.email)
     dispatch(setUser({
       userId: res.data.userId,
       email: res.data.email,

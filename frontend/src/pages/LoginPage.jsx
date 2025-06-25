@@ -19,7 +19,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", form);
-      // Use backend response for email and role (not form.email)
       dispatch(setUser({
         userId: res.data.userId,
         email: res.data.email,

@@ -20,7 +20,7 @@ export default function MyListPage() {
   useEffect(() => {
     if (!profile) return;
     setLoading(true);
-    const MIN_LOADING_TIME = 1000; // 1 second
+    const MIN_LOADING_TIME = 1000;
     const startTime = Date.now();
 
     api

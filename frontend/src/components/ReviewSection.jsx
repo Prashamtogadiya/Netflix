@@ -26,10 +26,9 @@ export default function ReviewSection({ movieId, user }) {
       await api.post(`/reviews/${movieId}`, { rating, comment });
       setComment("");
       setRating(5);
-      // Refetch reviews after submit
       const res = await api.get(`/reviews/${movieId}`);
       setReviews(res.data.reviews || []);
-      setShowAll(false); // Reset to show only 3 after new review
+      setShowAll(false); 
     } catch (err) {
         console.error("Failed to submit review:", err);
       alert("Failed to submit review");

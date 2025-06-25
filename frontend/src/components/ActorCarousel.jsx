@@ -1,26 +1,33 @@
 import React from "react";
 import { useRef } from "react";
+
+// Displays a horizontal scrollable carousel of actors with their images.
+// Used to showcase actors from the provided movies array.
 export default function ActorCarousel({ movies }) {
-  // Collect all actors and their images
+  // Build a flat list of actors and their images from all movies
   const actorList = [];
   movies.forEach(movie => {
-      for (let i = 0; i < Math.min(movie.Actors.length, movie.ActorImage.length); i++) {
-        actorList.push({
-          name: movie.Actors[i],
-          img: movie.ActorImage[i] || "https://placehold.co/120x120?text=No+Image"
-        });
-      }
+    for (let i = 0; i < Math.min(movie.Actors.length, movie.ActorImage.length); i++) {
+      actorList.push({
+        name: movie.Actors[i],
+        img: movie.ActorImage[i] || "https://placehold.co/120x120?text=No+Image"
+      });
+    }
   });
 
+  // Reference to the scrollable container
   const scrollRef = useRef(null);
-  const scrollBy = 136; 
+  // Amount of pixels to scroll when clicking arrows
+  const scrollBy = 136;
 
+  // Scrolls the carousel left
   const handlePrev = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft -= scrollBy;
     }
   };
 
+  // Scrolls the carousel right
   const handleNext = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft += scrollBy;
@@ -29,7 +36,7 @@ export default function ActorCarousel({ movies }) {
 
   return (
     <div className="relative px-4">
-      {/* Prev Button */}
+      {/* Left arrow button for scrolling left */}
       <button
         onClick={handlePrev}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
@@ -37,7 +44,7 @@ export default function ActorCarousel({ movies }) {
       >
         &#8592;
       </button>
-      {/* Next Button */}
+      {/* Right arrow button for scrolling right */}
       <button
         onClick={handleNext}
         className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-2 text-xl transition hidden md:block"
@@ -45,12 +52,13 @@ export default function ActorCarousel({ movies }) {
       >
         &#8594;
       </button>
+      {/* The scrollable row of actor cards */}
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 hide-scrollbar"
         style={{
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none", // IE/Edge
+          scrollbarWidth: "none", // Hide scrollbar in Firefox
+          msOverflowStyle: "none", // Hide scrollbar in IE/Edge
         }}
       >
         {/* Hide scrollbar for Chrome, Safari, Opera */}
@@ -61,9 +69,11 @@ export default function ActorCarousel({ movies }) {
             }
           `}
         </style>
+        {/* If no actors, show a message */}
         {actorList.length === 0 && (
           <div className="text-gray-400">No actors found.</div>
         )}
+        {/* Render each actor as a card with image and name */}
         {actorList.map((actor, idx) => (
           <div
             key={actor.name + idx}

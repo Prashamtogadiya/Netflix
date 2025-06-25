@@ -6,14 +6,12 @@ import { useNavigate } from "react-router-dom";
 import NetflixLoader from "../components/NetflixLoader";
 
 export default function MakeNewProfile() {
-  // State for name, gender, and selected avatar index
   const [form, setForm] = useState({ name: "", gender: "male", avatarInd: 0 });
   const [loading, setLoading] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // Avatar options for each gender
   const AVATARS = {
     male: [
       "https://img.freepik.com/premium-vector/male-face-avatar-icon-set-flat-design-social-media-profiles_1281173-3806.jpg?semt=ais_hybrid&w=740",
@@ -27,22 +25,18 @@ export default function MakeNewProfile() {
     ],
   };
 
-  // Handle gender change and reset avatar index
   const handleGenderChange = (e) => {
     setForm({ ...form, gender: e.target.value, avatarInd: 0 });
   };
 
-  // Handle avatar selection
   const handleAvatarSelect = (ind) => {
     setForm({ ...form, avatarInd: ind });
   };
 
-  // Handle name input
   const handleNameChange = (e) => {
     setForm({ ...form, name: e.target.value });
   };
 
-  // Handle form submit (replace with your API logic)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

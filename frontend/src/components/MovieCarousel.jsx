@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Helper to convert runtime in minutes to "Xh Ym" format
+// Helper to format runtime in minutes to "Xh Ym"
 function formatRuntime(runtime) {
   if (!runtime || isNaN(runtime)) return "N/A";
   const hours = Math.floor(runtime / 60);
@@ -9,14 +9,16 @@ function formatRuntime(runtime) {
   return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
 }
 
+// Shows a horizontal carousel of movie cards with navigation arrows and "View More" button.
 export default function MovieCarousel({ movies, category }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [atEnd, setAtEnd] = useState(false);
 
-  // Scroll by one card width (320px + 16px gap)
+  // Amount to scroll by one card width (320px + 16px gap)
   const scrollBy = 336;
 
+  // Scrolls carousel left
   const handlePrev = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft -= scrollBy;
@@ -24,6 +26,7 @@ export default function MovieCarousel({ movies, category }) {
     }
   };
 
+  // Scrolls carousel right and checks if at end
   const handleNext = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollLeft += scrollBy;
@@ -38,6 +41,7 @@ export default function MovieCarousel({ movies, category }) {
     }
   };
 
+  // Checks if carousel is at the end when scrolling
   const handleScroll = () => {
     if (
       scrollRef.current.scrollLeft + scrollRef.current.clientWidth >=
@@ -66,7 +70,7 @@ export default function MovieCarousel({ movies, category }) {
     }
   }
 
-  // Handler for "View More" navigation
+  // Navigates to the "View More" page for the category
   const handleViewMore = () => {
     if (inferredCategory) {
       navigate(`/allmovies?category=${encodeURIComponent(inferredCategory)}`);
@@ -77,7 +81,7 @@ export default function MovieCarousel({ movies, category }) {
 
   return (
     <div className="relative px-5">
-      {/* Prev Button */}
+      {/* Left arrow button */}
       <button
         onClick={handlePrev}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black text-white rounded-full p-3 text-2xl transition hidden md:block cursor-pointer"
@@ -86,7 +90,7 @@ export default function MovieCarousel({ movies, category }) {
       >
         &#8592;
       </button>
-      {/* Next Button or View More */}
+      {/* Right arrow button or View More button */}
       {!atEnd ? (
         <button
           onClick={handleNext}
@@ -105,13 +109,14 @@ export default function MovieCarousel({ movies, category }) {
           &gt;
         </button>
       )}
+      {/* The scrollable row of movie cards */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-4 hide-scrollbar pl-4 pr-4"
         style={{
-          scrollbarWidth: "none", // Firefox
-          msOverflowStyle: "none", // IE/Edge
+          scrollbarWidth: "none", // Hide scrollbar in Firefox
+          msOverflowStyle: "none", // Hide scrollbar in IE/Edge
         }}
       >
         {/* Hide scrollbar for Chrome, Safari, Opera */}
@@ -122,9 +127,11 @@ export default function MovieCarousel({ movies, category }) {
             }
           `}
         </style>
+        {/* Show a message if there are no movies */}
         {movies.length === 0 && (
           <div className="text-gray-400">No movies found.</div>
         )}
+        {/* Render up to 10 movie cards */}
         {movies.slice(0, 10).map((movie) => (
           <div
             key={movie._id}
@@ -138,6 +145,7 @@ export default function MovieCarousel({ movies, category }) {
               transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
+            {/* Movie poster image */}
             <img
               src={
                 Array.isArray(movie.Image) && movie.Image.length > 0
@@ -148,7 +156,9 @@ export default function MovieCarousel({ movies, category }) {
               className="absolute inset-0 w-full h-full object-cover rounded-lg"
               style={{ transition: "filter 0.3s" }}
             />
+            {/* Overlay for gradient effect */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-lg"></div>
+            {/* Movie info at the bottom */}
             <div className="absolute left-0 bottom-0 z-10 p-3 w-full">
               <h3 className="text-2xl truncate mb-1">{movie.Title}</h3>
               <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold">

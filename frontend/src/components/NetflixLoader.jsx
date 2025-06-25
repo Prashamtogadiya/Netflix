@@ -2,7 +2,6 @@ import React from "react";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export default function NetflixLoader({ className = "" }) {
-  // Netflix-style animated logo loader
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-950">
       <DotLottieReact

@@ -7,7 +7,6 @@ export default function Navbar({ profile, profileURL, onLogout }) {
   const dropdownRef = useRef(null);
   const location = useLocation();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -20,7 +19,6 @@ export default function Navbar({ profile, profileURL, onLogout }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdown]);
 
-  // Prevent error if profile or profile.name is undefined
   const safeProfileName = profile && profile.name ? profile.name : "Profile";
   const safeProfileURL = profileURL || "https://placehold.co/120x120?text=User";
 

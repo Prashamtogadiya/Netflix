@@ -7,7 +7,6 @@ export default function ProfileList({ profiles }) {
 
   const handleSelect = (profile) => {
     dispatch(setSelectedProfile(profile));
-    // Navigate to movies or dashboard page if needed
   };
 
   return (

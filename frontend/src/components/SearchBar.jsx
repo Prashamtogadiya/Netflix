@@ -80,7 +80,6 @@ const SearchBar = () => {
                 {movie.Genre.map((genre)=>{
                   <span className="text-xs text-gray-400">{genre}</span>
                 })}
-                {/* <span className="text-xs text-gray-400">{movie.Genre}</span> */}
               </div>
             </div>
           ))}

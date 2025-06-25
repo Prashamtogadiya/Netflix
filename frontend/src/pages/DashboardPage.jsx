@@ -31,13 +31,12 @@ export default function DashboardPage() {
   // Fetch movies on mount
   useEffect(() => {
     setLoading(true);
-    const MIN_LOADING_TIME = 1500; // 1 second
+    const MIN_LOADING_TIME = 1500;
     const startTime = Date.now();
 
     api
       .get("/movies")
       .then((res) => {
-        // Defensive: ensure movies is always an array
         if (Array.isArray(res.data)) {
           setMovies(res.data);
         } else if (res.data && Array.isArray(res.data.movies)) {
@@ -64,7 +63,6 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
-  // Defensive: always use an array for filtering
   const safeMovies = Array.isArray(movies) ? movies : [];
   const actionMovies = safeMovies.filter(
     (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Action")
@@ -77,10 +75,10 @@ export default function DashboardPage() {
     (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Adventure")
   );
 
-const crimeMovies = safeMovies.filter(
+  const crimeMovies = safeMovies.filter(
     (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Crime")
   );
-const comedyMovies = safeMovies.filter(
+  const comedyMovies = safeMovies.filter(
     (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Comedy")
   );
   // const mostSearchedMovies = safeMovies
@@ -163,16 +161,15 @@ const comedyMovies = safeMovies.filter(
         <MovieCarousel movies={adventureMovies} />
       </section>
 
-<section className="px-8 mt-8">
+      <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
         <MovieCarousel movies={crimeMovies} />
       </section>
 
-<section className="px-8 mt-8">
+      <section className="px-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
         <MovieCarousel movies={comedyMovies} />
       </section>
-
 
       <Footer />
     </div>

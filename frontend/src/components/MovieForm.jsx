@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import TagInput from "./TagInput";
 import api from "../api";
-
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import Chip from "@mui/material/Chip";
+import { Rating, Typography, Box } from "@mui/material";
 export default function MovieForm({ onSuccess, movie }) {
   const [form, setForm] = useState(
     movie || {
@@ -25,14 +27,8 @@ export default function MovieForm({ onSuccess, movie }) {
   );
   const [loading, setLoading] = useState(false);
 
-  // For single value fields
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  // For tag/array fields
-  const setTagField = (name, values) => {
-    setForm({ ...form, [name]: values });
+  const handleAutoChange = (name, value) => {
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -41,10 +37,6 @@ export default function MovieForm({ onSuccess, movie }) {
     try {
       const payload = {
         ...form,
-        Year: Number(form.Year),
-        Runtime: Number(form.Runtime),
-        Searches: Number(form.Searches),
-        Rating: form.Rating,
       };
       if (movie && movie._id) {
         await api.put(`/movies/${movie._id}`, payload);
@@ -68,117 +60,824 @@ export default function MovieForm({ onSuccess, movie }) {
       <h3 className="text-3xl font-extrabold mb-6 md:col-span-2 text-center text-red-500 tracking-wide drop-shadow-lg">
         {movie ? "Edit Movie" : "Add New Movie"}
       </h3>
-      <input
-        name="Title"
-        placeholder="Title"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Title}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-        required
+        onInputChange={(_, value) => handleAutoChange("Title", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Title"
+            placeholder="Add title..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+            required
+          />
+        )}
       />
-      <input
-        name="Director"
-        placeholder="Director"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Director}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-        required
+        onInputChange={(_, value) => handleAutoChange("Director", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Director"
+            placeholder="Add director..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+            required
+          />
+        )}
       />
-      <input
-        name="Year"
-        placeholder="Year"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Year}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-        type="number"
-        required
+        onInputChange={(_, value) => handleAutoChange("Year", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Year"
+            placeholder="Add year..."
+            className="bg-gray-800 rounded-lg"
+            type="number"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+            required
+          />
+        )}
       />
-      <input
-        name="Rating"
-        placeholder="IMDb Rating"
-        value={form.Rating}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-      />
-      <input
-        name="Runtime"
-        placeholder="Runtime (minutes)"
+      <Box
+        className="bg-gray-800 rounded-lg p-3"
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "start",
+          gap: 1,
+        }}
+      >
+        <Typography sx={{ color: "white" }}>IMDb Rating</Typography>
+        <Rating
+          name="rating"
+          value={Number(form.Rating) || 0}
+          precision={0.5}
+          max={5}
+          onChange={(_, value) =>
+            handleAutoChange("Rating", value?.toString() || "")
+          }
+          sx={{
+            "& .MuiRating-icon": {
+              color: "gray",
+            },
+            "& .MuiRating-iconFilled": {
+              color: "gold",
+            },
+            "& .MuiRating-iconHover": {
+              color: "skyblue",
+            },
+          }}
+        />
+      </Box>
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Runtime}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-        type="number"
+        onInputChange={(_, value) => handleAutoChange("Runtime", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Runtime (minutes)"
+            placeholder="Add runtime..."
+            className="bg-gray-800 rounded-lg"
+                        type="number"
+
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
       />
-      <input
-        name="Awards"
-        placeholder="Awards"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Awards}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
+        onInputChange={(_, value) => handleAutoChange("Awards", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Awards"
+            placeholder="Add awards..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
       />
-      <input
-        name="Searches"
-        placeholder="Searches"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Searches}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
-        type="number"
+        onInputChange={(_, value) => handleAutoChange("Searches", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Searches"
+            placeholder="Add searches..."
+            className="bg-gray-800 rounded-lg"
+                        type="number"
+
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
       />
-      <input
-        name="Video"
-        placeholder="Video URL"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Video}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition md:col-span-2"
+        onInputChange={(_, value) => handleAutoChange("Video", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Video URL"
+            placeholder="Add video URL..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <textarea
-        name="Description"
-        placeholder="Description"
+      <Autocomplete
+        freeSolo
+        options={[]}
         value={form.Description}
-        onChange={handleChange}
-        className="p-3 rounded-lg bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition md:col-span-2"
-        rows={4}
+        onInputChange={(_, value) => handleAutoChange("Description", value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Description"
+            placeholder="Add description..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+            multiline
+            rows={4}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Writers"
-        values={form.Writers}
-        setValues={(vals) => setTagField("Writers", vals)}
-        placeholder="Add writer..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[]}
+        value={form.Writers}
+        onChange={(_, value) => handleAutoChange("Writers", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Writers"
+            placeholder="Add writer..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Actors"
-        values={form.Actors}
-        setValues={(vals) => setTagField("Actors", vals)}
-        placeholder="Add actor..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[]}
+        value={form.Actors}
+        onChange={(_, value) => handleAutoChange("Actors", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Actors"
+            placeholder="Add actor..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Languages"
-        values={form.Language}
-        setValues={(vals) => setTagField("Language", vals)}
-        placeholder="Add language..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[
+          "English",
+          "Spanish",
+          "French",
+          "German",
+          "Chinese",
+          "Japanese",
+          "Hindi",
+          "Korean",
+          "Italian",
+          "Portuguese",
+          "Russian",
+        ]}
+        value={form.Language}
+        onChange={(_, value) => handleAutoChange("Language", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Languages"
+            placeholder="Add language..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Genres"
-        values={form.Genre}
-        setValues={(vals) => setTagField("Genre", vals)}
-        placeholder="Add genre..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[
+          "Action",
+          "Comedy",
+          "Drama",
+          "Horror",
+          "Sci-Fi",
+          "Romance",
+          " Thriller",
+          "Documentary",
+          "Fantasy",
+          "Adventure",
+          "Crime",
+        ]}
+        value={form.Genre}
+        onChange={(_, value) => handleAutoChange("Genre", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Genres"
+            placeholder="Add genre..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Types"
-        values={form.Types}
-        setValues={(vals) => setTagField("Types", vals)}
-        placeholder="Add type..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={["Movie", "TV Show", "Documentary", "Series"]}
+        value={form.Types}
+        onChange={(_, value) => handleAutoChange("Types", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Types"
+            placeholder="Add type..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Image URLs"
-        values={form.Image}
-        setValues={(vals) => setTagField("Image", vals)}
-        placeholder="Add image URL..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[]}
+        value={form.Image}
+        onChange={(_, value) => handleAutoChange("Image", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Image URLs"
+            placeholder="Add image URL..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
-      <TagInput
-        label="Actor Image URLs"
-        values={form.ActorImage}
-        setValues={(vals) => setTagField("ActorImage", vals)}
-        placeholder="Add actor image URL..."
+      <Autocomplete
+        multiple
+        freeSolo
+        options={[]}
+        value={form.ActorImage}
+        onChange={(_, value) => handleAutoChange("ActorImage", value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) => (
+            <Chip
+              label={option}
+              {...getTagProps({ index })}
+              sx={{ color: "white", backgroundColor: "#123561" }} // text + background
+            />
+          ))
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="outlined"
+            label="Actor Image URLs"
+            placeholder="Add actor image URL..."
+            className="bg-gray-800 rounded-lg"
+            sx={{
+              // Style for the label (floating placeholder text)
+              "& label": {
+                color: "white", // default label color
+              },
+              "& label.Mui-focused": {
+                color: "skyblue", // label color when input is focused
+              },
+
+              // Style for the input text
+              "& .MuiInputBase-input": {
+                color: "white", // text color inside the input box
+              },
+
+              // Style for the outline and its states
+              "& .MuiOutlinedInput-root": {
+                // Default border style
+                "& fieldset": {
+                  borderColor: "gray",
+                },
+                // Border style on hover
+                "&:hover fieldset": {
+                  borderColor: "lightgray",
+                },
+                // Border style when input is focused
+                "&.Mui-focused fieldset": {
+                  borderColor: "skyblue",
+                },
+              },
+            }}
+          />
+        )}
+        className="md:col-span-2"
       />
       <button
         type="submit"

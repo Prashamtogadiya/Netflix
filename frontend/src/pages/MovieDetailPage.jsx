@@ -15,7 +15,6 @@ export default function MovieDetailPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Get profile and avatar from Redux for Navbar
   const profile = useSelector((state) => state.profiles.selectedProfile);
   const profileURL =
     profile?.avatar || "https://placehold.co/120x120?text=User";
@@ -27,14 +26,12 @@ export default function MovieDetailPage() {
   const [myListMovies, setMyListMovies] = useState([]);
   const [myListLoading, setMyListLoading] = useState(true);
 
-  // My List state
   const [inMyList, setInMyList] = useState(false);
   const [listLoading, setListLoading] = useState(false);
 
-  // Fetch movie and all movies data
   useEffect(() => {
     setLoading(true);
-    const MIN_LOADING_TIME = 1000; // 1 second
+    const MIN_LOADING_TIME = 1000; 
     const startTime = Date.now();
 
     const fetchData = async () => {
@@ -59,7 +56,6 @@ export default function MovieDetailPage() {
     fetchData();
   }, [movieId]);
 
-  // Fetch My List for the current profile
   useEffect(() => {
     if (!profile) return;
     setMyListLoading(true);
@@ -70,7 +66,6 @@ export default function MovieDetailPage() {
       .finally(() => setMyListLoading(false));
   }, [profile]);
 
-  // Check if movie is in My List for this profile
   useEffect(() => {
     if (!profile || !movie?._id) return;
     setListLoading(true);
@@ -84,12 +79,10 @@ export default function MovieDetailPage() {
       .finally(() => setListLoading(false));
   }, [profile, movie?._id]);
 
-  // Fetch all movies for filtering options (e.g., similar movies, popular)
   useEffect(() => {
     api
       .get("/movies")
       .then((res) => {
-        // Defensive: ensure movies is always an array
         if (Array.isArray(res.data)) {
           setMovies(res.data);
         } else if (res.data && Array.isArray(res.data.movies)) {
@@ -110,7 +103,6 @@ export default function MovieDetailPage() {
     navigate("/login");
   };
 
-  // Add to My List
   const handleAddToMyList = async () => {
     if (!profile || !movie) return;
     if (!window.confirm("Add this movie to your list?")) return;
@@ -128,7 +120,6 @@ export default function MovieDetailPage() {
     setListLoading(false);
   };
 
-  // Remove from My List
   const handleRemoveFromMyList = async () => {
     if (!profile || !movie) return;
     if (!window.confirm("Remove this movie from your list?")) return;
@@ -146,9 +137,7 @@ export default function MovieDetailPage() {
     setListLoading(false);
   };
 
-  // Defensive: always use an array for filtering
   const safeMovies = Array.isArray(movies) ? movies : [];
-  // Use safeMovies.filter(...) everywhere instead of movies.filter(...)
   const actionMovies = safeMovies.filter((m) => m.Genre?.includes("Action"));
 
   if (loading) return <NetflixLoader />;
@@ -186,7 +175,6 @@ export default function MovieDetailPage() {
           ></iframe>
         </div>
       </div>
-      {/* Movie Info */}
       <div className="max-w-4xl mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-2">{movie.Title}</h1>
         <div className="flex items-center gap-4 mb-2">
@@ -259,10 +247,8 @@ export default function MovieDetailPage() {
           </span>
         </div>
       </div>
-      {/* Reviews Section */}
       <ReviewSection movieId={movieId} user={user} />
 
-      {/* My List Section */}
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
         <h2 className="text-2xl font-bold mb-4">My List</h2>
         {myListLoading ? (
@@ -278,7 +264,6 @@ export default function MovieDetailPage() {
         )}
       </div>
 
-      {/* Carousels */}
       <div className="max-w-7xl mx-auto w-full px-4">
         <h2 className="text-2xl font-bold mb-4">More Like This</h2>
         <MovieCarousel movies={movies} visibleCount={5} cardWidth={340} />

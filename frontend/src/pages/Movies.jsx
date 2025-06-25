@@ -20,7 +20,7 @@ export default function Movies() {
   const navigate = useNavigate();
   useEffect(() => {
     setLoading(true);
-    const MIN_LOADING_TIME = 1000; // 1 second
+    const MIN_LOADING_TIME = 1000; 
     const startTime = Date.now();
     api
       .get("/movies")
