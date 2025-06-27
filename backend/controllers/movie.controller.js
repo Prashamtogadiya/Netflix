@@ -113,3 +113,49 @@ exports.searchMoviessByPrefix = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Genre controllers
+exports.getGenres = async (req, res) => {
+  try {
+    const genres = await Genre.find({});
+    res.status(200).json(genres || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to fetch genres" });
+  }
+};
+
+exports.createGenre = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Genre name is required" });
+    const existing = await Genre.findOne({ name });
+    if (existing) return res.status(400).json({ message: "Genre already exists" });
+    const genre = await Genre.create({ name });
+    res.status(201).json(genre);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add genre", error: err.message });
+  }
+};
+
+// Actor controllers
+exports.getActors = async (req, res) => {
+  try {
+    const actors = await Actor.find({});
+    res.status(200).json(actors || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to fetch actors" });
+  }
+};
+
+exports.createActor = async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ message: "Actor name is required" });
+    const existing = await Actor.findOne({ name });
+    if (existing) return res.status(400).json({ message: "Actor already exists" });
+    const actor = await Actor.create({ name });
+    res.status(201).json(actor);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to add actor", error: err.message });
+  }
+};

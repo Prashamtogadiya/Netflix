@@ -8,12 +8,17 @@ import SearchBar from "../components/SearchBar";
 
 export default function AdminPanelPage() {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("dashboard"); 
   const [editMovie, setEditMovie] = useState(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const [fetchingMore, setFetchingMore] = useState(false);
   const [search, setSearch] = useState("");
+  const [genreName, setGenreName] = useState("");
+  const [genreLoading, setGenreLoading] = useState(false);
+  const [actorName, setActorName] = useState("");
+  const [actorLoading, setActorLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", color: "green" });
+  const [loading, setLoading] = useState(true);
   const observer = useRef();
 
   const lastMovieRef = useCallback(
@@ -35,7 +40,7 @@ export default function AdminPanelPage() {
   );
 
   const fetchMovies = () => {
-    setLoading(true);
+    setLoading(true); // <-- restore loader
     api
       .get("/movies")
       .then((res) => {
@@ -45,7 +50,7 @@ export default function AdminPanelPage() {
         else setMovies([]);
       })
       .catch(() => setMovies([]))
-      .finally(() => setLoading(false));
+      .finally(() => setLoading(false)); // <-- restore loader
   };
 
   useEffect(() => {
@@ -74,11 +79,96 @@ export default function AdminPanelPage() {
     fetchMovies();
   };
 
+  // Add new genre handler
+  const handleAddGenre = async (e) => {
+    e.preventDefault();
+    setGenreLoading(true);
+    try {
+      await api.post("/movies/genres", { name: genreName });
+      setGenreName("");
+      setSnackbar({ open: true, message: "Genre added successfully!", color: "green" });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || "Failed to add genre",
+        color: "red",
+      });
+    }
+    setGenreLoading(false);
+  };
+  // Add new actor handler
+  const handleAddActor = async (e) => {
+    e.preventDefault();
+    setActorLoading(true);
+    setActorLoading(true);
+    try {
+      await api.post("/movies/actors", { name: actorName });
+      setSnackbar({ open: true, message: "Actor added successfully!", color: "green" });
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || "Failed to add actor",
+        color: "red",
+      });
+    }
+    setActorLoading(false);
+  };
+
+  // Snackbar auto-close effect
+  useEffect(() => {
+    if (snackbar.open) {
+      const timer = setTimeout(() => setSnackbar({ ...snackbar, open: false }), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [snackbar.open]);
+
   if (loading) return <NetflixLoader />;
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <AdminNavbar />
+      {/* Snackbar */}
+      {snackbar.open && (
+        <div
+          className={`
+            fixed bottom-8 right-8 z-50
+            flex items-center gap-3
+            px-6 py-4
+            rounded-xl
+            shadow-2xl
+            font-semibold
+            text-white
+            transition-all
+            animate-fade-in
+            ${snackbar.color === "green"
+              ? "bg-gradient-to-r from-green-500 via-green-600 to-green-700"
+              : "bg-gradient-to-r from-red-500 via-red-600 to-red-700"}
+          `}
+          style={{
+            minWidth: 260,
+            maxWidth: 350,
+            boxShadow: "0 8px 32px 0 rgba(0,0,0,0.25)",
+            border: "1.5px solid rgba(255,255,255,0.08)",
+            fontSize: "1rem",
+            letterSpacing: "0.01em",
+          }}
+        >
+          <span className="flex items-center justify-center">
+            {snackbar.color === "green" ? (
+              <svg className="w-6 h-6 mr-2 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="11" stroke="white" strokeOpacity="0.2" />
+                <path d="M7 13l3 3 7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6 mr-2 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="11" stroke="white" strokeOpacity="0.2" />
+                <path d="M6 6l12 12M6 18L18 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </span>
+          <span className="flex-1">{snackbar.message}</span>
+        </div>
+      )}
       <div className="flex flex-1 pt-24">
         <aside
           className="sticky top-24 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-8 px-4 h-[calc(100vh-96px)] z-20"
@@ -110,6 +200,26 @@ export default function AdminPanelPage() {
             }}
           >
             Add New Movie
+          </button>
+          <button
+            className={`text-left px-4 py-3 cursor-pointer rounded mb-2 font-semibold transition ${
+              activeTab === "add-genre"
+                ? "bg-red-600 text-white"
+                : "hover:bg-gray-800"
+            }`}
+            onClick={() => setActiveTab("add-genre")}
+          >
+            Add New Genre
+          </button>
+          <button
+            className={`text-left px-4 py-3 cursor-pointer rounded mb-2 font-semibold transition ${
+              activeTab === "add-actor"
+                ? "bg-red-600 text-white"
+                : "hover:bg-gray-800"
+            }`}
+            onClick={() => setActiveTab("add-actor")}
+          >
+            Add New Actor
           </button>
         </aside>
         <main className="flex-1 px-8 py-8 ml-34 mt-2 max-w-5xl mx-auto">
@@ -219,6 +329,50 @@ export default function AdminPanelPage() {
           {activeTab === "add" && <MovieForm onSuccess={handleFormSuccess} />}
           {activeTab === "edit" && editMovie && (
             <MovieForm movie={editMovie} onSuccess={handleFormSuccess} />
+          )}
+          {activeTab === "add-genre" && (
+            <div className="max-w-md mx-auto bg-gray-900 rounded-lg shadow-lg p-8">
+              <h3 className="text-2xl font-bold mb-6 text-center">Add New Genre</h3>
+              <form onSubmit={handleAddGenre} className="flex flex-col gap-4">
+                <input
+                  type="text"
+                  value={genreName}
+                  onChange={(e) => setGenreName(e.target.value)}
+                  placeholder="Genre name"
+                  className="p-3 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded transition"
+                  disabled={genreLoading}
+                >
+                  {genreLoading ? "Adding..." : "Add Genre"}
+                </button>
+              </form>
+            </div>
+          )}
+          {activeTab === "add-actor" && (
+            <div className="max-w-md mx-auto bg-gray-900 rounded-lg shadow-lg p-8">
+              <h3 className="text-2xl font-bold mb-6 text-center">Add New Actor</h3>
+              <form onSubmit={handleAddActor} className="flex flex-col gap-4">
+                <input
+                  type="text"
+                  value={actorName}
+                  onChange={(e) => setActorName(e.target.value)}
+                  placeholder="Actor name"
+                  className="p-3 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded transition"
+                  disabled={actorLoading}
+                >
+                  {actorLoading ? "Adding..." : "Add Actor"}
+                </button>
+              </form>
+            </div>
           )}
         </main>
       </div>
