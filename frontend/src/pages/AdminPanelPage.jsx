@@ -5,6 +5,9 @@ import Footer from "../components/Footer";
 import MovieForm from "../components/MovieForm";
 import AdminNavbar from "../components/AdminNavbar";
 import SearchBar from "../components/SearchBar";
+// Add MUI Snackbar and Alert
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 export default function AdminPanelPage() {
   const [movies, setMovies] = useState([]);
@@ -17,7 +20,7 @@ export default function AdminPanelPage() {
   const [genreLoading, setGenreLoading] = useState(false);
   const [actorName, setActorName] = useState("");
   const [actorLoading, setActorLoading] = useState(false);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", color: "green" });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", color: "success" });
   const [loading, setLoading] = useState(true);
   const observer = useRef();
 
@@ -86,12 +89,12 @@ export default function AdminPanelPage() {
     try {
       await api.post("/movies/genres", { name: genreName });
       setGenreName("");
-      setSnackbar({ open: true, message: "Genre added successfully!", color: "green" });
+      setSnackbar({ open: true, message: "Genre added successfully!", color: "success" });
     } catch (err) {
       setSnackbar({
         open: true,
         message: err.response?.data?.message || "Failed to add genre",
-        color: "red",
+        color: "error",
       });
     }
     setGenreLoading(false);
@@ -100,18 +103,23 @@ export default function AdminPanelPage() {
   const handleAddActor = async (e) => {
     e.preventDefault();
     setActorLoading(true);
-    setActorLoading(true);
     try {
       await api.post("/movies/actors", { name: actorName });
-      setSnackbar({ open: true, message: "Actor added successfully!", color: "green" });
+      setSnackbar({ open: true, message: "Actor added successfully!", color: "success" });
     } catch (err) {
       setSnackbar({
         open: true,
         message: err.response?.data?.message || "Failed to add actor",
-        color: "red",
+        color: "error",
       });
     }
     setActorLoading(false);
+  };
+
+  // Snackbar close handler
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") return;
+    setSnackbar({ ...snackbar, open: false });
   };
 
   // Snackbar auto-close effect
@@ -127,48 +135,22 @@ export default function AdminPanelPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <AdminNavbar />
-      {/* Snackbar */}
-      {snackbar.open && (
-        <div
-          className={`
-            fixed bottom-8 right-8 z-50
-            flex items-center gap-3
-            px-6 py-4
-            rounded-xl
-            shadow-2xl
-            font-semibold
-            text-white
-            transition-all
-            animate-fade-in
-            ${snackbar.color === "green"
-              ? "bg-gradient-to-r from-green-500 via-green-600 to-green-700"
-              : "bg-gradient-to-r from-red-500 via-red-600 to-red-700"}
-          `}
-          style={{
-            minWidth: 260,
-            maxWidth: 350,
-            boxShadow: "0 8px 32px 0 rgba(0,0,0,0.25)",
-            border: "1.5px solid rgba(255,255,255,0.08)",
-            fontSize: "1rem",
-            letterSpacing: "0.01em",
-          }}
+      {/* MUI Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <MuiAlert
+          onClose={handleSnackbarClose}
+          severity={snackbar.color}
+          variant="filled"
+          sx={{ width: "100%" }}
         >
-          <span className="flex items-center justify-center">
-            {snackbar.color === "green" ? (
-              <svg className="w-6 h-6 mr-2 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="11" stroke="white" strokeOpacity="0.2" />
-                <path d="M7 13l3 3 7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            ) : (
-              <svg className="w-6 h-6 mr-2 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="11" stroke="white" strokeOpacity="0.2" />
-                <path d="M6 6l12 12M6 18L18 6" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </span>
-          <span className="flex-1">{snackbar.message}</span>
-        </div>
-      )}
+          {snackbar.message}
+        </MuiAlert>
+      </Snackbar>
       <div className="flex flex-1 pt-24">
         <aside
           className="sticky top-24 left-0 w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-8 px-4 h-[calc(100vh-96px)] z-20"
@@ -380,3 +362,4 @@ export default function AdminPanelPage() {
     </div>
   );
 }
+               
