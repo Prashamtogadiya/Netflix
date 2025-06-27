@@ -118,12 +118,6 @@ _Empowering seamless streaming experiences, effortlessly connected._
 
 ---
 
-## Screenshots
-
-> _Add screenshots here for: Home, Movie Detail, Admin Panel, My List, etc._
-
----
-
 ## Project Structure
 ````markdown
 backend
