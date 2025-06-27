@@ -4,8 +4,27 @@ const express = require('express');
 const { createMovie, getMovies, getMovieById, updateMovie, deleteMovie, searchMoviessByPrefix } = require('../controllers/movie.controller.js');
 // Import authentication middleware (optional, for protected routes)
 const { authenticate, verifyAdmin } = require('../middlewares/auth.middleware.js');
+const { Genre, Actor } = require('../models/Movie.js');
 const router = express.Router();
 
+// IMPORTANT: Place /genres and /actors routes BEFORE ALL OTHER ROUTES (including /search and /:id)
+router.get('/genres', async (req, res) => {
+  try {
+    const genres = await Genre.find({});
+    res.status(200).json(genres || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to fetch genres" });
+  }
+});
+
+router.get('/actors', async (req, res) => {
+  try {
+    const actors = await Actor.find({});
+    res.status(200).json(actors || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message || "Failed to fetch actors" });
+  }
+});
 
 router.get('/search', searchMoviessByPrefix );
 

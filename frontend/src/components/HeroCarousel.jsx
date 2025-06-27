@@ -103,7 +103,11 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <span className="text-sm">{movie.Genre?.join(" · ")}</span>
+          <span className="text-sm">
+            {Array.isArray(movie.Genre)
+              ? movie.Genre.map((g) => (g.name || g)).join(" · ")
+              : ""}
+          </span>
         </div>
       </div>
       {/* Left/Right arrows */}

@@ -77,9 +77,12 @@ const SearchBar = () => {
               />
               <div className="flex flex-col">
                 <span className="text-white font-semibold">{movie.Title}</span>
-                {movie.Genre.map((genre)=>{
-                  <span className="text-xs text-gray-400">{genre}</span>
-                })}
+                {Array.isArray(movie.Genre) &&
+                  movie.Genre.map((genre, idx) => (
+                    <span key={idx} className="text-xs text-gray-400">
+                      {(genre.name || genre)}
+                    </span>
+                  ))}
               </div>
             </div>
           ))}

@@ -9,6 +9,24 @@ import Footer from "../components/Footer";
 import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 import ReviewSection from "../components/ReviewSection";
+import * as AlertDialog from "@radix-ui/react-alert-dialog";
+
+// Add this Flex component for layout (since shadcn/radix UI uses Flex in the example)
+function Flex({ children, gap = "3", mt = "0", justify = "start", ...props }) {
+  const gapClass = gap === "3" ? "gap-3" : "";
+  const mtClass = mt === "4" ? "mt-4" : mt === "3" ? "mt-3" : "";
+  const justifyClass =
+    justify === "end"
+      ? "justify-end"
+      : justify === "center"
+      ? "justify-center"
+      : "justify-start";
+  return (
+    <div className={`flex ${gapClass} ${mtClass} ${justifyClass}`} {...props}>
+      {children}
+    </div>
+  );
+}
 
 export default function MovieDetailPage() {
   const { movieId } = useParams();
@@ -28,6 +46,10 @@ export default function MovieDetailPage() {
 
   const [inMyList, setInMyList] = useState(false);
   const [listLoading, setListLoading] = useState(false);
+
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertType, setAlertType] = useState("add"); // "add" or "remove"
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -103,42 +125,51 @@ export default function MovieDetailPage() {
     navigate("/login");
   };
 
-  const handleAddToMyList = async () => {
-    if (!profile || !movie) return;
-    if (!window.confirm("Add this movie to your list?")) return;
-    setListLoading(true);
-    try {
-      await api.post("/profiles/mylist/add", {
-        profileId: profile._id,
-        movieId: movie._id,
-      });
-      setInMyList(true);
-    } catch (err) {
-      console.error("Failed to add to My List:", err);
-      alert("Failed to add to My List");
-    }
-    setListLoading(false);
+  const handleAddToMyList = () => {
+    setAlertType("add");
+    setPendingAction(() => async () => {
+      setListLoading(true);
+      try {
+        await api.post("/profiles/mylist/add", {
+          profileId: profile._id,
+          movieId: movie._id,
+        });
+        setInMyList(true);
+      } catch (err) {
+        console.error("Error adding to My List:", err);
+        // Optionally show an error message to the user
+      }
+      setListLoading(false);
+    });
+    setAlertOpen(true);
   };
 
-  const handleRemoveFromMyList = async () => {
-    if (!profile || !movie) return;
-    if (!window.confirm("Remove this movie from your list?")) return;
-    setListLoading(true);
-    try {
-      await api.post("/profiles/mylist/remove", {
-        profileId: profile._id,
-        movieId: movie._id,
-      });
-      setInMyList(false);
-    } catch (err) {
-      console.error("Failed to remove from My List:", err);
-      alert("Failed to remove from My List");
-    }
-    setListLoading(false);
+  const handleRemoveFromMyList = () => {
+    setAlertType("remove");
+    setPendingAction(() => async () => {
+      setListLoading(true);
+      try {
+        await api.post("/profiles/mylist/remove", {
+          profileId: profile._id,
+          movieId: movie._id,
+        });
+        setInMyList(false);
+      } catch (err) {
+        console.error("Error removing from My List:", err);
+        // Optionally show an error message to the user
+      }
+      setListLoading(false);
+    });
+    setAlertOpen(true);
   };
+
+  const hasGenre = (movie, genre) =>
+    Array.isArray(movie.Genre) &&
+    movie.Genre.some((g) => g.name === genre);
 
   const safeMovies = Array.isArray(movies) ? movies : [];
-  const actionMovies = safeMovies.filter((m) => m.Genre?.includes("Action"));
+  // const actionMovies = safeMovies.filter((m) => m.Genre?.includes("Action"));
+  const actionMovies = safeMovies.filter((movie) => hasGenre(movie, "Action"));
 
   if (loading) return <NetflixLoader />;
   if (!movie) {
@@ -182,62 +213,122 @@ export default function MovieDetailPage() {
             {movie.Rating || "N/A"}
           </span>
           <span className="text-gray-400">{movie.Year}</span>
-          <span className="text-gray-400">{movie.Genre?.join(" · ")}</span>
+          {/* Fix genre display: show names if objects */}
+          <span className="text-gray-400">
+            {Array.isArray(movie.Genre)
+              ? movie.Genre.map((g) => (g && g.name ? g.name : g)).join(" · ")
+              : ""}
+          </span>
         </div>
         <p className="text-gray-200 mb-4">{movie.Description}</p>
         <div className="flex items-center gap-4 mb-6">
-          {inMyList ? (
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
-              title="Remove from My List"
-              onClick={handleRemoveFromMyList}
-              disabled={listLoading}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M6 6l12 12M6 18L18 6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>Remove</span>
-            </button>
-          ) : (
-            <button
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
-              title="Add to My List"
-              onClick={handleAddToMyList}
-              disabled={listLoading}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M12 5v14M5 12h14"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span>My List</span>
-            </button>
-          )}
+          <AlertDialog.Root open={alertOpen} onOpenChange={setAlertOpen}>
+            <AlertDialog.Trigger asChild>
+              {inMyList ? (
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
+                  title="Remove from My List"
+                  onClick={handleRemoveFromMyList}
+                  disabled={listLoading}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M6 6l12 12M6 18L18 6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>Remove</span>
+                </button>
+              ) : (
+                <button
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded transition duration-200 font-semibold text-sm"
+                  title="Add to My List"
+                  onClick={handleAddToMyList}
+                  disabled={listLoading}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 5v14M5 12h14"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>My List</span>
+                </button>
+              )}
+            </AlertDialog.Trigger>
+
+            {/* Backdrop overlay */}
+            <AlertDialog.Overlay className="fixed inset-0 z-[99] bg-black/80" />
+
+            <AlertDialog.Content className="fixed z-[100] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md">
+              <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl">
+                {/* Header */}
+                <div className="px-6 py-4 border-b border-zinc-800">
+                  <AlertDialog.Title className="text-xl font-semibold text-white">
+                    {alertType === "add" ? "Add to My List" : "Remove from My List"}
+                  </AlertDialog.Title>
+                </div>
+
+                {/* Content */}
+                <div className="px-6 py-6">
+                  <AlertDialog.Description className="text-zinc-300 text-base leading-relaxed">
+                    {alertType === "add" 
+                      ? `Are you sure you want to add "${movie?.Title || 'this movie'}" to your list?`
+                      : `Are you sure you want to remove "${movie?.Title || 'this movie'}" from your list?`
+                    }
+                  </AlertDialog.Description>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="px-6 py-4 bg-zinc-900/50 border-t border-zinc-800 flex justify-end gap-3">
+                  <AlertDialog.Cancel asChild>
+                    <button
+                      className="px-4 py-2 text-zinc-300 hover:text-white font-medium transition-colors duration-200"
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                  </AlertDialog.Cancel>
+                  <AlertDialog.Action asChild>
+                    <button
+                      className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded transition-colors duration-200"
+                      type="button"
+                      onClick={async () => {
+                        setAlertOpen(false);
+                        if (pendingAction) await pendingAction();
+                      }}
+                    >
+                      {alertType === "add" ? "Add" : "Remove"}
+                    </button>
+                  </AlertDialog.Action>
+                </div>
+              </div>
+            </AlertDialog.Content>
+          </AlertDialog.Root>
         </div>
         <div className="flex flex-wrap gap-2 text-sm text-gray-400 mb-2">
           <span>
             <b>Director:</b> {movie.Director}
           </span>
           <span>
-            <b>Actors:</b> {movie.Actors?.join(", ")}
+            <b>Actors:</b>{" "}
+            {Array.isArray(movie.Actors)
+              ? movie.Actors.map((a) => (a && a.name ? a.name : a)).join(", ")
+              : ""}
           </span>
           <span>
             <b>Language:</b> {movie.Language?.join(", ")}

@@ -64,23 +64,19 @@ export default function DashboardPage() {
   };
 
   const safeMovies = Array.isArray(movies) ? movies : [];
-  const actionMovies = safeMovies.filter(
-    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Action")
-  );
-  const dramaMovies = safeMovies.filter(
-    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Drama")
-  );
 
+  // Helper to check genre match (handles both string and object)
+  const hasGenre = (movie, genre) =>
+  Array.isArray(movie.Genre) &&
+  movie.Genre.some(g => g.name === genre);
+
+  const actionMovies = safeMovies.filter((movie) => hasGenre(movie, "Action"));
+  const dramaMovies = safeMovies.filter((movie) => hasGenre(movie, "Drama"));
   const adventureMovies = safeMovies.filter(
-    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Adventure")
+    (movie) => hasGenre(movie, "Adventure")
   );
-
-  const crimeMovies = safeMovies.filter(
-    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Crime")
-  );
-  const comedyMovies = safeMovies.filter(
-    (movie) => Array.isArray(movie.Genre) && movie.Genre.includes("Comedy")
-  );
+  const crimeMovies = safeMovies.filter((movie) => hasGenre(movie, "Crime"));
+  const comedyMovies = safeMovies.filter((movie) => hasGenre(movie, "Comedy"));
   // const mostSearchedMovies = safeMovies
   //   .filter((movie) => movie.Searches)
   //   .sort((a, b) => b.Searches - a.Searches)
@@ -167,7 +163,7 @@ export default function DashboardPage() {
       </section>
 
       <section className="px-8 mt-8">
-        <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
+        <h2 className="text-2xl font-bold mb-4">Comedy Movies</h2>
         <MovieCarousel movies={comedyMovies} />
       </section>
 

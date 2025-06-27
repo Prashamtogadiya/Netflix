@@ -46,13 +46,24 @@ export default function Movies() {
     navigate("/login");
   };
 
-  const actionMovies = movies.filter((movie) => movie.Genre.includes("Action"));
-  const dramaMovies = movies.filter((movie) => movie.Genre.includes("Drama"));
-  
-  const adventureMovies = movies.filter((movie) => movie.Genre.includes("Adventure"));
+  // Helper to check genre match (handles both string and object)
+  const hasGenre = (movie, genre) =>
+    Array.isArray(movie.Genre) &&
+    movie.Genre.some(
+      (g) =>
+        (typeof g === "object" && g !== null && g.name
+          ? g.name
+          : typeof g === "string"
+          ? g
+          : ""
+        ) === genre
+    );
 
-const crimeMovies = movies.filter((movie) => movie.Genre.includes("Crime"));
-const comedyMovies = movies.filter((movie) => movie.Genre.includes("Comedy"));
+  const actionMovies = movies.filter((movie) => hasGenre(movie, "Action"));
+  const dramaMovies = movies.filter((movie) => hasGenre(movie, "Drama"));
+  const adventureMovies = movies.filter((movie) => hasGenre(movie, "Adventure"));
+  const crimeMovies = movies.filter((movie) => hasGenre(movie, "Crime"));
+  const comedyMovies = movies.filter((movie) => hasGenre(movie, "Comedy"));
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
   if (loading) return <NetflixLoader />;

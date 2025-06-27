@@ -144,7 +144,12 @@ export default function AdminPanelPage() {
                           movie.Title?.toLowerCase().includes(search.toLowerCase()) ||
                           (Array.isArray(movie.Genre) &&
                             movie.Genre.some((g) =>
-                              g.toLowerCase().includes(search.toLowerCase())
+                              (typeof g === "object" && g !== null
+                                ? g.name
+                                : g
+                              )
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
                             ))
                       )
                       .slice(0, visibleCount)
@@ -164,7 +169,7 @@ export default function AdminPanelPage() {
                             </td>
                             <td className="px-4 py-2 border-r border-gray-800">
                               {Array.isArray(movie.Genre)
-                                ? movie.Genre.join(", ")
+                                ? movie.Genre.map((g) => (g.name || g)).join(", ")
                                 : movie.Genre || ""}
                             </td>
                             <td className="px-4 py-2">

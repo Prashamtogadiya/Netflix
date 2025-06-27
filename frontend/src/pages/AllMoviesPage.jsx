@@ -51,7 +51,12 @@ export default function AllMoviesPage() {
               Array.isArray(movie.Genre) &&
               movie.Genre.some(
                 (g) =>
-                  g.trim().toLowerCase() === category.trim().toLowerCase()
+                  ((typeof g === "object" && g !== null && g.name
+                    ? g.name
+                    : typeof g === "string"
+                    ? g
+                    : ""
+                  ).trim().toLowerCase() === category.trim().toLowerCase())
               )
           );
         } else if (category === "Most Rated") {

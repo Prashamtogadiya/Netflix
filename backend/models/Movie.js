@@ -1,6 +1,14 @@
 // Import mongoose for MongoDB object modeling
 const mongoose = require('mongoose');
 
+// Actor and Genre schemas
+const genreSchema = new mongoose.Schema({
+  name: { type: String, unique: true, required: true }
+});
+const actorSchema = new mongoose.Schema({
+  name: { type: String, unique: true, required: true }
+});
+
 // This schema defines a single review for a movie
 const reviewSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -15,10 +23,11 @@ const movieSchema = new mongoose.Schema({
   Description: String,          // Movie description
   Director: String,          // List of directors
   Writers: [String],           // List of writers
-  Actors: [String],             // List of actors
+  // Reference Actor and Genre collections
+  Actors: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Actor' }],             // List of actors
   Year: Number,         // Year the movie was released
   Language: [String],           // Languages available
-  Genre: [String],              // Genres of the movie
+  Genre: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Genre' }],              // Genres of the movie
   Awards: String,               // Awards won by the movie
   Types: [String],   
   Rating:String,           // Types/categories (e.g., "Movie", "Series")
@@ -30,5 +39,7 @@ const movieSchema = new mongoose.Schema({
   ActorImage:[String]
 });
 
-// Export the Movie model, using the 'movies' collection in MongoDB
-module.exports = mongoose.model('Movie', movieSchema, 'movies');
+// Export models
+module.exports.Movie = mongoose.model('Movie', movieSchema, 'movies');
+module.exports.Genre = mongoose.model('Genre', genreSchema, 'genres');
+module.exports.Actor = mongoose.model('Actor', actorSchema, 'actors');

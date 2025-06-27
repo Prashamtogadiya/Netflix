@@ -1,5 +1,5 @@
 // Import the Movie model for database operations
-const Movie = require('../models/Movie.js');
+const { Movie, Genre, Actor } = require('../models/Movie.js');
 
 // Create a new movie (admin or authorized user)
 exports.createMovie = async (req, res) => {
@@ -19,8 +19,10 @@ exports.createMovie = async (req, res) => {
 // Get all movies
 exports.getMovies = async (req, res) => {
   try {
-    // Find all movies in the database
-    const movies = await Movie.find();
+    // Find all movies in the database and populate actors and genres
+    const movies = await Movie.find()
+      .populate('Actors', 'name')
+      .populate('Genre', 'name');
     // Respond with the list of movies
     res.json(movies);
   } catch (err) {
@@ -34,8 +36,10 @@ exports.getMovieById = async (req, res) => {
   try {
     // Get movie ID from URL params
     const { id } = req.params;
-    // Find the movie by ID
-    const movie = await Movie.findById(id);
+    // Find the movie by ID and populate actors and genres
+    const movie = await Movie.findById(id)
+      .populate('Actors', 'name')
+      .populate('Genre', 'name');
     // If not found, return 404
     if (!movie) return res.status(404).json({ message: 'Movie not found' });
     // Respond with the movie
@@ -52,8 +56,10 @@ exports.updateMovie = async (req, res) => {
     // Get movie ID from URL params and new data from body
     const { id } = req.params;
     const movieData = req.body;
-    // Find and update the movie
-    const movie = await Movie.findByIdAndUpdate(id, movieData, { new: true });
+    // Find and update the movie, then populate actors and genres
+    const movie = await Movie.findByIdAndUpdate(id, movieData, { new: true })
+      .populate('Actors', 'name')
+      .populate('Genre', 'name');
     // If not found, return 404
     if (!movie) return res.status(404).json({ message: 'Movie not found' });
     // Respond with updated movie
@@ -87,14 +93,21 @@ exports.searchMoviessByPrefix = async (req, res) => {
   try {
     const q = req.query.q;
     if (!q) return res.json([]);
-    // Case-insensitive prefix search on name or category
-    const regex = new RegExp('^' + q, 'i');
+    // Case-insensitive prefix search on Title and genre name
+    const regex = new RegExp(q, 'i');
+    // Find genres matching the query
+    const { Genre } = require('../models/Movie.js');
+    const matchedGenres = await Genre.find({ name: { $regex: regex } });
+    const genreIds = matchedGenres.map(g => g._id);
+
     const movies = await Movie.find({
       $or: [
         { Title: { $regex: regex } },
-        { Genre: { $regex: regex } }
+        { Genre: { $in: genreIds } }
       ]
-    });
+    })
+      .populate('Genre', 'name')
+      .populate('Actors', 'name');
     res.json(movies);
   } catch (err) {
     res.status(500).json({ error: err.message });

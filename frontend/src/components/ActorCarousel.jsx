@@ -4,13 +4,22 @@ import { useRef } from "react";
 // Displays a horizontal scrollable carousel of actors with their images.
 // Used to showcase actors from the provided movies array.
 export default function ActorCarousel({ movies }) {
+  // Defensive: Ensure movies is always an array
+  const safeMovies = Array.isArray(movies) ? movies : [];
+
   // Build a flat list of actors and their images from all movies
   const actorList = [];
-  movies.forEach(movie => {
-    for (let i = 0; i < Math.min(movie.Actors.length, movie.ActorImage.length); i++) {
+  safeMovies.forEach(movie => {
+    const actors = Array.isArray(movie.Actors) ? movie.Actors : [];
+    const actorImages = Array.isArray(movie.ActorImage) ? movie.ActorImage : [];
+    for (let i = 0; i < Math.min(actors.length, actorImages.length); i++) {
+      const actorName =
+        typeof actors[i] === "object" && actors[i] !== null
+          ? actors[i].name
+          : actors[i];
       actorList.push({
-        name: movie.Actors[i],
-        img: movie.ActorImage[i] || "https://placehold.co/120x120?text=No+Image"
+        name: actorName || "Unknown",
+        img: actorImages[i] || "https://placehold.co/120x120?text=No+Image"
       });
     }
   });

@@ -1,5 +1,5 @@
-const Movie = require('../models/Movie');
-const User = require('../models/User');
+const { Movie } = require('../models/Movie');
+require('../models/User');
 const mongoose = require('mongoose');
 
 // Add a review to a movie
