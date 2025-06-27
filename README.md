@@ -115,12 +115,15 @@ _Empowering seamless streaming experiences, effortlessly connected._
 - **Centralized API and state management** (Axios, Redux)
 - **Error handling and user feedback dialogs** (Radix UI, MUI)
 - **Modular, maintainable codebase**
+<<<<<<< HEAD
 
 ---
 
 ## Screenshots
 
 > _Add screenshots here for: Home, Movie Detail, Admin Panel, My List, etc._
+=======
+>>>>>>> b4609dd8625740e8d87424ff55391d30a39d6915
 
 ---
 
@@ -214,4 +217,8 @@ Contributions are welcome! Please follow these steps:
 
 ## License
 
+<<<<<<< HEAD
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+=======
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+>>>>>>> b4609dd8625740e8d87424ff55391d30a39d6915
