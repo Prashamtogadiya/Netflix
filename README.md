@@ -19,6 +19,9 @@ _Empowering seamless streaming experiences, effortlessly connected._
   <img alt="TailwindCSS" src="https://img.shields.io/badge/TailwindCSS-06B6D4.svg?style=flat&logo=TailwindCSS&logoColor=white" />
   <img alt="ESLint" src="https://img.shields.io/badge/ESLint-4B32C3.svg?style=flat&logo=ESLint&logoColor=white" />
   <img alt="Axios" src="https://img.shields.io/badge/Axios-5A29E4.svg?style=flat&logo=Axios&logoColor=white" />
+  <img alt="Radix UI" src="https://img.shields.io/badge/RadixUI-18181b.svg?style=flat&logo=react&logoColor=white" />
+  <img alt="MUI" src="https://img.shields.io/badge/MUI-007FFF.svg?style=flat&logo=mui&logoColor=white" />
+  <img alt="Lottie" src="https://img.shields.io/badge/Lottie-00BFFF.svg?style=flat&logo=lottie&logoColor=white" />
   <img alt="PostCSS" src="https://img.shields.io/badge/PostCSS-DD3A0A.svg?style=flat&logo=PostCSS&logoColor=white" />
   <img alt="Autoprefixer" src="https://img.shields.io/badge/Autoprefixer-DD3735.svg?style=flat&logo=Autoprefixer&logoColor=white" />
   <img alt=".ENV" src="https://img.shields.io/badge/.ENV-ECD53F.svg?style=flat&logo=dotenv&logoColor=black" />
@@ -33,6 +36,7 @@ _Empowering seamless streaming experiences, effortlessly connected._
   - [Installation](#installation)
   - [Usage](#usage)
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
 - [License](#license)
@@ -47,9 +51,13 @@ _Empowering seamless streaming experiences, effortlessly connected._
 - **Modern UI/UX:** Netflix-style layouts, responsive design, and reusable React components.
 - **Robust Authentication:** Secure login/signup, JWT-based authentication, protected routes, and error handling.
 - **Profile Management:** Multiple profiles per user, profile selection, and avatar support.
-- **Movie Management:** Browse, search, and manage movies (admin features included).
+- **Movie Management:** Browse, search, add, edit, and delete movies (admin features included).
 - **Centralized State:** Redux for authentication, profiles, and movies, with clear separation of concerns.
 - **API Management:** Axios for all API calls, with a single configuration point.
+- **Admin Panel:** Manage movies with advanced search, edit, and delete capabilities.
+- **Reviews:** Users can add and view reviews for each movie.
+- **My List:** Save favorite movies to a personal list per profile.
+- **Infinite Scroll & Carousels:** Modern browsing experience with carousels and infinite scroll.
 
 ---
 
@@ -95,14 +103,24 @@ _Empowering seamless streaming experiences, effortlessly connected._
 ---
 
 ## Features
-- Netflix-style responsive UI (React + Tailwind CSS)
-- Authentication (signup, login, JWT, protected routes)
-- Profile management (create, select, delete profiles, avatar selection)
-- Movie management (add, update, delete, browse movies)
-- "My List" feature for profiles
-- Centralized API and state management (Axios, Redux)
-- Error handling and user feedback dialogs
-- Modular, maintainable codebase
+
+- **Netflix-style responsive UI** (React + Tailwind CSS)
+- **Authentication** (signup, login, JWT, protected routes)
+- **Profile management** (create, select, delete profiles, avatar selection)
+- **Movie management** (add, update, delete, browse movies, admin panel)
+- **"My List" feature** for profiles
+- **Movie reviews** (add/view reviews per movie)
+- **Advanced search** (search by title, genre, actor)
+- **Infinite scroll & carousels** for browsing movies
+- **Centralized API and state management** (Axios, Redux)
+- **Error handling and user feedback dialogs** (Radix UI, MUI)
+- **Modular, maintainable codebase**
+
+---
+
+## Screenshots
+
+> _Add screenshots here for: Home, Movie Detail, Admin Panel, My List, etc._
 
 ---
 
@@ -112,60 +130,79 @@ backend
 ├── config
 │   └── db.js
 ├── controllers
-│   ├── authController.js
-│   ├── movieController.js
-│   └── profileController.js
-├── middleware
-│   ├── authMiddleware.js
-│   └── errorMiddleware.js
+│   ├── auth.controller.js
+│   ├── movie.controller.js
+│   ├── profile.controller.js
+│   └── review.controller.js
+├── middlewares
+│   ├── auth.middleware.js
+│   └── error.middleware.js
 ├── models
-│   ├── movieModel.js
-│   └── userModel.js
+│   ├── Movie.js
+│   ├── User.js
+│   └── Profile.js
 ├── routes
-│   ├── authRoutes.js
-│   ├── movieRoutes.js
-│   └── profileRoutes.js
+│   ├── auth.routes.js
+│   ├── movie.routes.js
+│   ├── profile.routes.js
+│   └── review.routes.js
 ├── .env
 ├── .gitignore
 ├── package.json
 └── server.js
+
 frontend
 ├── public
 │   ├── index.html
 │   └── vite.svg
 ├── src
 │   ├── api
-│   │   └── axiosConfig.js
+│   │   └── index.jsx
 │   ├── app
-│   │   ├── store.js
-│   │   └── rootReducer.js
+│   │   └── store.js
 │   ├── components
-│   │   ├── Auth
-│   │   ├── Common
-│   │   ├── Layout
-│   │   └── Movies
-│   ├── hooks
-│   │   └── useAuth.js
+│   │   ├── AdminNavbar.jsx
+│   │   ├── ActorCarousel.jsx
+│   │   ├── CreateProfileForm.jsx
+│   │   ├── HeroCarousel.jsx
+│   │   ├── MovieCarousel.jsx
+│   │   ├── MovieForm.jsx
+│   │   ├── MyListCarousel.jsx
+│   │   ├── Navbar.jsx
+│   │   ├── NetflixLoader.jsx
+│   │   ├── ReviewSection.jsx
+│   │   ├── SearchBar.jsx
+│   │   └── ui
+│   │       ├── button.jsx
+│   │       └── dialog.jsx
+│   ├── features
+│   │   ├── profiles
+│   │   │   └── profileSlice.js
+│   │   └── user
+│   │       └── userSlice.js
 │   ├── pages
-│   │   ├── HomePage
-│   │   ├── LoginPage
-│   │   ├── MoviePage
-│   │   └── ProfilePage
-│   ├── styles
-│   │   └── tailwind.css
-│   ├── utils
-│   │   └── helpers.js
-│   ├── .env
-│   ├── .gitignore
+│   │   ├── AdminPanelPage.jsx
+│   │   ├── AllMoviesPage.jsx
+│   │   ├── DashboardPage.jsx
+│   │   ├── LoginPage.jsx
+│   │   ├── MakeNewProfile.jsx
+│   │   ├── MovieDetailPage.jsx
+│   │   ├── Movies.jsx
+│   │   ├── MyListPage.jsx
+│   │   ├── ProfilePage.jsx
+│   │   └── SignupPage.jsx
+│   ├── App.jsx
 │   ├── index.js
-│   └── App.jsx
+│   └── styles
+│       └── tailwind.css
 ├── package.json
 └── vite.config.js
-````
+```
 
 ---
 
 ## Contributing
+
 Contributions are welcome! Please follow these steps:
 1. Fork the repository.
 2. Create a new branch: `git checkout -b feature/YourFeatureName`.
@@ -176,4 +213,5 @@ Contributions are welcome! Please follow these steps:
 ---
 
 ## License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
