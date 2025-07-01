@@ -151,11 +151,15 @@ export default function AllMoviesPage() {
               onClick={() => navigate(`/movies/${movie._id}`)}
             >
               <img
-                src={
-                  Array.isArray(movie.Image) && movie.Image.length > 0
-                    ? movie.Image[0]
-                    : "https://placehold.co/220x330?text=No+Image"
-                }
+                 src={
+                Array.isArray(movie.Image) && movie.Image.length > 0
+                  ? (
+                      movie.Image[0].startsWith("http")
+                        ? movie.Image[0]
+                        : `http://localhost:5000/uploads/${movie.Image[0]}`
+                    )
+                  : "https://placehold.co/220x330?text=No+Image"
+              }
                 alt={movie.Title}
                 className="w-full h-64 object-cover"
               />

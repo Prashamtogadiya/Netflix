@@ -65,16 +65,20 @@ export default function MovieCarouselSimple({ movies }) {
             <div className="w-full h-44 bg-black flex items-center justify-center">
               <img
                 src={
-                  Array.isArray(movie.Image) && movie.Image.length > 0
-                    ? movie.Image[0]
-                    : "https://placehold.co/300x176?text=No+Image"
-                }
+                Array.isArray(movie.Image) && movie.Image.length > 0
+                  ? (
+                      movie.Image[0].startsWith("http")
+                        ? movie.Image[0]
+                        : `http://localhost:5000/uploads/${movie.Image[0]}`
+                    )
+                  : "https://placehold.co/220x330?text=No+Image"
+              }
                 alt={movie.Title}
-                className="object-cover w-full h-full"
+                className="w-full h-60 object-cover rounded-lg"
               />
             </div>
             {/* Movie info */}
-            <div className="w-full flex flex-col items-start px-4 py-3">
+            <div className="w-full flex flex-col items-start px-4 py-9">
               <h3 className="text-lg font-bold mb-1 truncate w-full">{movie.Title}</h3>
               <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold mb-1">
                 <img

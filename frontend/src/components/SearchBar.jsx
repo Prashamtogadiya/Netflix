@@ -71,7 +71,15 @@ const SearchBar = () => {
               }}
             >
               <img
-                src={movie.Image?.[0]}
+                 src={
+                Array.isArray(movie.Image) && movie.Image.length > 0
+                  ? (
+                      movie.Image[0].startsWith("http")
+                        ? movie.Image[0]
+                        : `http://localhost:5000/uploads/${movie.Image[0]}`
+                    )
+                  : "https://placehold.co/220x330?text=No+Image"
+              }
                 alt={movie.Title}
                 className="w-10 h-14 object-cover rounded-sm mr-4"
               />

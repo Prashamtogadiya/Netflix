@@ -154,28 +154,53 @@ export default function MovieForm({ onSuccess, movie }) {
       let uploadedMovieImageNames = [];
       if (movieImages && movieImages.length > 0) {
         const formData = new FormData();
-        movieImages.forEach((file) => formData.append("images", file));
-        const res = await api.post("/movies/upload/movie-images", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+        // Only append files that are File objects (not empty or undefined)
+        movieImages.forEach((file) => {
+          if (file instanceof File) formData.append("images", file);
         });
-        uploadedMovieImageNames = res.data.filenames;
+        if (formData.has("images")) {
+          const res = await api.post("/movies/upload/movie-images", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          uploadedMovieImageNames = res.data.filenames;
+        }
       }
 
       // 2. Upload actor images if any (multiple)
       let uploadedActorImageNames = [];
       if (actorImages && actorImages.length > 0) {
-        // Ensure correct order: do not reuse the same File object for multiple actors
         const formData = new FormData();
-        actorImages.forEach((file) => formData.append("images", file));
-        const res = await api.post("/movies/upload/actor-images", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+        actorImages.forEach((file) => {
+          if (file instanceof File) formData.append("images", file);
         });
-        uploadedActorImageNames = res.data.filenames;
+        if (formData.has("images")) {
+          const res = await api.post("/movies/upload/actor-images", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          uploadedActorImageNames = res.data.filenames;
+        }
       }
 
-      // Always use empty arrays for Actors/Genre if not present (for new movie)
       const actors = form.Actors && form.Actors.length > 0 ? form.Actors : [];
       const genres = form.Genre && form.Genre.length > 0 ? form.Genre : [];
+      const isEdit = !!(movie && movie._id);
+
+      // For update: use only the images left in form.Image plus new uploads
+      // For add: use only new uploads
+      const finalImages = isEdit
+        ? [...(Array.isArray(form.Image) ? form.Image : []), ...uploadedMovieImageNames]
+        : uploadedMovieImageNames;
+
+      // Remove empty/falsey values and ensure all are strings
+      const filteredImages = finalImages.filter((img) => !!img && typeof img === "string");
+
+      // For actor images, same logic
+      const finalActorImages = isEdit
+        ? [...(Array.isArray(form.ActorImage) ? form.ActorImage : []), ...uploadedActorImageNames]
+        : uploadedActorImageNames;
+
+      const filteredActorImages = finalActorImages.filter((img) => !!img && typeof img === "string");
+
       const payload = {
         Title: form.Title,
         Description: form.Description,
@@ -213,28 +238,36 @@ export default function MovieForm({ onSuccess, movie }) {
           : [],
         Rating: form.Rating ? form.Rating.toString() : "",
         Searches: form.Searches ? Number(form.Searches) : undefined,
-        // Always send array of image filenames (empty array if none)
-        Image: [
-          ...(Array.isArray(form.Image) ? form.Image : []),
-          ...uploadedMovieImageNames,
-        ],
+        Image: filteredImages,
         Video: form.Video,
         Runtime: form.Runtime ? Number(form.Runtime) : undefined,
-        // Ensure ActorImage array matches the number of actors
-        ActorImage: [
-          ...(Array.isArray(form.ActorImage) ? form.ActorImage : []),
-          ...uploadedActorImageNames
-        ].slice(0, Array.isArray(actors) ? actors.length : 0),
+        ActorImage: filteredActorImages.slice(0, Array.isArray(actors) ? actors.length : 0),
       };
-      // Remove empty/undefined fields that backend may reject
-      Object.keys(payload).forEach(
-        (key) =>
-          (payload[key] === undefined ||
-            payload[key] === null ||
-            (Array.isArray(payload[key]) && payload[key].length === 0)) &&
-          delete payload[key]
-      );
-      if (movie && movie._id) {
+
+      // Remove only undefined/null fields, but DO NOT remove empty arrays for Image/ActorImage
+      Object.keys(payload).forEach((key) => {
+        if (
+          payload[key] === undefined ||
+          payload[key] === null
+        ) {
+          delete payload[key];
+        }
+      });
+
+      // For add: require at least one image
+      if (!isEdit && (!payload.Image || payload.Image.length === 0)) {
+        alert("Please upload at least one movie image.");
+        setLoading(false);
+        return;
+      }
+      // For update: require at least one image
+      if (isEdit && (!payload.Image || payload.Image.length === 0)) {
+        alert("Please keep at least one movie image.");
+        setLoading(false);
+        return;
+      }
+
+      if (isEdit) {
         await api.put(`/movies/${movie._id}`, payload);
       } else {
         payload.Actors = payload.Actors || [];
@@ -257,6 +290,8 @@ export default function MovieForm({ onSuccess, movie }) {
     if (typeof option === "string") return option;
     if (typeof option === "number") return option.toString();
     if (option && typeof option === "object" && option.name) return option.name;
+    // fallback for objects with value property (like numbers in array)
+    if (option && typeof option === "object" && option.value !== undefined) return String(option.value);
     return "";
   };
 
@@ -302,6 +337,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={typeof form.Title === "number" ? form.Title.toString() : form.Title}
         onInputChange={(_, value) => handleAutoChange("Title", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -330,6 +366,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={typeof form.Director === "number" ? form.Director.toString() : form.Director}
         onInputChange={(_, value) => handleAutoChange("Director", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -360,6 +397,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={Array.isArray(form.Writers) ? form.Writers : []}
         onChange={(_, value) => handleAutoChange("Writers", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
             <Chip
@@ -408,6 +446,7 @@ export default function MovieForm({ onSuccess, movie }) {
         ]}
         value={Array.isArray(form.Language) ? form.Language : []}
         onChange={(_, value) => handleAutoChange("Language", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
             <Chip
@@ -444,6 +483,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={typeof form.Year === "number" ? form.Year.toString() : form.Year}
         onInputChange={(_, value) => handleAutoChange("Year", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -501,6 +541,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={form.Runtime}
         onInputChange={(_, value) => handleAutoChange("Runtime", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -529,6 +570,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={form.Awards}
         onInputChange={(_, value) => handleAutoChange("Awards", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -554,6 +596,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={form.Searches}
         onInputChange={(_, value) => handleAutoChange("Searches", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -580,6 +623,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={[]}
         value={form.Video}
         onInputChange={(_, value) => handleAutoChange("Video", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderInput={(params) => (
           <TextField
             {...params}
