@@ -140,6 +140,7 @@ export default function AdminPanelPage() {
         open={snackbar.open}
         autoHideDuration={2000}
         onClose={handleSnackbarClose}
+        transitionDuration={700}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       >
         <MuiAlert
