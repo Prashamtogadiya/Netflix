@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 // Import dotenv to load environment variables from .env file
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 
 // Import authentication and profile,movie routes
 const authRoutes = require('./routes/auth.routes.js');
@@ -28,6 +29,9 @@ app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }));
+
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Mount authentication routes at /api/auth
 app.use('/api/auth', authRoutes);

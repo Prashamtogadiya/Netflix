@@ -29,6 +29,8 @@ export default function MovieForm({ onSuccess, movie }) {
   const [errors, setErrors] = useState({});
   const [genreOptions, setGenreOptions] = useState([]);
   const [actorOptions, setActorOptions] = useState([]);
+  const [movieImages, setMovieImages] = useState([]);
+  const [actorImages, setActorImages] = useState([]);
 
   useEffect(() => {
     api.get("/movies/genres").then((res) => setGenreOptions(res.data || []));
@@ -103,6 +105,41 @@ export default function MovieForm({ onSuccess, movie }) {
     setErrors({ ...errors, [name]: undefined });
   };
 
+  // Handle movie image file selection
+  const handleMovieImageChange = (e) => {
+    // For update: append new files to existing images (if editing)
+    setMovieImages((prev) => [...prev, ...Array.from(e.target.files)]);
+  };
+
+  // Handle actor image file selection
+  const handleActorImageChange = (e) => {
+    setActorImages((prev) => [...prev, ...Array.from(e.target.files)]);
+  };
+
+  // Remove a selected movie image before upload
+  const handleRemoveMovieImage = (idx) => {
+    setMovieImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Remove a selected actor image before upload
+  const handleRemoveActorImage = (idx) => {
+    setActorImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleRemoveExistingMovieImage = (idx) => {
+    setForm((prev) => ({
+      ...prev,
+      Image: prev.Image.filter((_, i) => i !== idx),
+    }));
+  };
+
+  const handleRemoveExistingActorImage = (idx) => {
+    setForm((prev) => ({
+      ...prev,
+      ActorImage: prev.ActorImage.filter((_, i) => i !== idx),
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
@@ -113,6 +150,29 @@ export default function MovieForm({ onSuccess, movie }) {
     }
     setLoading(true);
     try {
+      // 1. Upload movie images if any
+      let uploadedMovieImageNames = [];
+      if (movieImages && movieImages.length > 0) {
+        const formData = new FormData();
+        movieImages.forEach((file) => formData.append("images", file));
+        const res = await api.post("/movies/upload/movie-images", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        uploadedMovieImageNames = res.data.filenames;
+      }
+
+      // 2. Upload actor images if any (multiple)
+      let uploadedActorImageNames = [];
+      if (actorImages && actorImages.length > 0) {
+        // Ensure correct order: do not reuse the same File object for multiple actors
+        const formData = new FormData();
+        actorImages.forEach((file) => formData.append("images", file));
+        const res = await api.post("/movies/upload/actor-images", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        uploadedActorImageNames = res.data.filenames;
+      }
+
       // Always use empty arrays for Actors/Genre if not present (for new movie)
       const actors = form.Actors && form.Actors.length > 0 ? form.Actors : [];
       const genres = form.Genre && form.Genre.length > 0 ? form.Genre : [];
@@ -153,26 +213,18 @@ export default function MovieForm({ onSuccess, movie }) {
           : [],
         Rating: form.Rating ? form.Rating.toString() : "",
         Searches: form.Searches ? Number(form.Searches) : undefined,
-        Image: Array.isArray(form.Image)
-          ? form.Image.map((img) =>
-              typeof img === "object" && img !== null && img.inputValue
-                ? img.inputValue
-                : typeof img === "string"
-                ? img
-                : ""
-            ).filter((img) => img.trim() !== "")
-          : [],
+        // Always send array of image filenames (empty array if none)
+        Image: [
+          ...(Array.isArray(form.Image) ? form.Image : []),
+          ...uploadedMovieImageNames,
+        ],
         Video: form.Video,
         Runtime: form.Runtime ? Number(form.Runtime) : undefined,
-        ActorImage: Array.isArray(form.ActorImage)
-          ? form.ActorImage.map((img) =>
-              typeof img === "object" && img !== null && img.inputValue
-                ? img.inputValue
-                : typeof img === "string"
-                ? img
-                : ""
-            ).filter((img) => img.trim() !== "")
-          : [],
+        // Ensure ActorImage array matches the number of actors
+        ActorImage: [
+          ...(Array.isArray(form.ActorImage) ? form.ActorImage : []),
+          ...uploadedActorImageNames
+        ].slice(0, Array.isArray(actors) ? actors.length : 0),
       };
       // Remove empty/undefined fields that backend may reject
       Object.keys(payload).forEach(
@@ -198,6 +250,42 @@ export default function MovieForm({ onSuccess, movie }) {
       );
     }
     setLoading(false);
+  };
+
+  // Fix for Autocomplete getOptionLabel warnings (always return string)
+  const safeGetOptionLabel = (option) => {
+    if (typeof option === "string") return option;
+    if (typeof option === "number") return option.toString();
+    if (option && typeof option === "object" && option.name) return option.name;
+    return "";
+  };
+
+  // Add new actor if not found in options
+  const handleActorsChange = async (_, value) => {
+    // Check for new actors (not in actorOptions)
+    const newActors = value.filter(
+      (v) =>
+        typeof v === "string" &&
+        !actorOptions.some((a) => a.name === v)
+    );
+    let updatedActorOptions = [...actorOptions];
+    if (newActors.length > 0) {
+      try {
+        // Add all new actors to backend
+        const added = await Promise.all(
+          newActors.map((name) =>
+            api.post("/movies/actors", { name }).then((res) => res.data)
+          )
+        );
+        updatedActorOptions = [...actorOptions, ...added];
+        setActorOptions(updatedActorOptions);
+      } catch (err) {
+        console.error("Error adding new actors:", err);
+        // Optionally show error
+      }
+    }
+    setForm({ ...form, Actors: value });
+    setErrors({ ...errors, Actors: undefined });
   };
 
   return (
@@ -543,8 +631,8 @@ export default function MovieForm({ onSuccess, movie }) {
         freeSolo
         options={actorOptions.map((a) => a.name)}
         value={normalizeValue(form.Actors, actorOptions)}
-        onChange={(_, value) => handleAutoChange("Actors", value)}
-        getOptionLabel={(option) => (typeof option === "string" ? option : (option?.name || ""))}
+        onChange={handleActorsChange}
+        getOptionLabel={safeGetOptionLabel}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
             <Chip
@@ -583,7 +671,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={genreOptions.map((g) => g.name)}
         value={normalizeValue(form.Genre, genreOptions)}
         onChange={(_, value) => handleAutoChange("Genre", value)}
-        getOptionLabel={(option) => (typeof option === "string" ? option : (option?.name || ""))}
+        getOptionLabel={safeGetOptionLabel}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
             <Chip
@@ -622,6 +710,7 @@ export default function MovieForm({ onSuccess, movie }) {
         options={["Movie", "TV Show", "Documentary", "Series"]}
         value={form.Types}
         onChange={(_, value) => handleAutoChange("Types", value)}
+        getOptionLabel={safeGetOptionLabel}
         renderTags={(value, getTagProps) =>
           value.map((option, index) => (
             <Chip
@@ -654,80 +743,121 @@ export default function MovieForm({ onSuccess, movie }) {
         )}
         className="md:col-span-2"
       />
-      <Autocomplete
-        multiple
-        freeSolo
-        options={[]}
-        value={form.Image}
-        onChange={(_, value) => handleAutoChange("Image", value)}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Image URLs"
-            placeholder="Add image URL..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Image}
-            helperText={errors.Image}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
-      />
-      <Autocomplete
-        multiple
-        freeSolo
-        options={[]}
-        value={form.ActorImage}
-        onChange={(_, value) => handleAutoChange("ActorImage", value)}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Actor Image URLs"
-            placeholder="Add actor image URL..."
-            className="bg-gray-800 rounded-lg"
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
-      />
+      {/* Movie Images Upload */}
+      <div className="md:col-span-2">
+        <label className="block text-white font-semibold mb-2">
+          Movie Images (upload)
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleMovieImageChange}
+          className="block w-full text-white bg-gray-800 rounded-lg border border-gray-700 p-2"
+        />
+        {/* Show previews if any */}
+        <div className="flex gap-2 mt-2 flex-wrap">
+          {/* Existing images (from DB) */}
+          {Array.isArray(form.Image) &&
+            form.Image.map((img, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={
+                    img.startsWith("http")
+                      ? img
+                      : `http://localhost:5000/uploads/${img}`
+                  }
+                  alt="movie"
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  onClick={() => handleRemoveExistingMovieImage(idx)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          {/* New images (to be uploaded) */}
+          {movieImages && movieImages.length > 0 &&
+            movieImages.map((file, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  onClick={() => handleRemoveMovieImage(idx)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+        </div>
+      </div>
+      {/* Actor Images Upload */}
+      <div className="md:col-span-2">
+        <label className="block text-white font-semibold mb-2">
+          Actor Images (upload)
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleActorImageChange}
+          className="block w-full text-white bg-gray-800 rounded-lg border border-gray-700 p-2"
+        />
+        <div className="flex gap-2 mt-2 flex-wrap">
+          {/* Existing images (from DB) */}
+          {Array.isArray(form.ActorImage) &&
+            form.ActorImage.map((img, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={
+                    img.startsWith("http")
+                      ? img
+                      : `http://localhost:5000/uploads/${img}`
+                  }
+                  alt="actor"
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  onClick={() => handleRemoveExistingActorImage(idx)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          {/* New images (to be uploaded) */}
+          {actorImages && actorImages.length > 0 &&
+            actorImages.map((file, idx) => (
+              <div key={idx} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
+                  className="w-16 h-16 object-cover rounded"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                  onClick={() => handleRemoveActorImage(idx)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+        </div>
+      </div>
       <button
         type="submit"
         className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold text-lg md:col-span-2 mt-4 shadow-lg transition"
