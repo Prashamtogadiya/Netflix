@@ -162,14 +162,12 @@ exports.createActor = async (req, res) => {
 
 // Upload movie images controller
 exports.uploadMovieImages = (req, res) => {
-  console.log("Received files:", req.files); // <-- add this for debugging
   const files = req.files || [];
   res.json({ filenames: files.map(f => f.filename) });
 };
 
 // Upload actor images controller
 exports.uploadActorImages = (req, res) => {
-  console.log("Received files:", req.files); // <-- add this for debugging
   const files = req.files || [];
   res.json({ filenames: files.map(f => f.filename) });
 };

@@ -230,7 +230,6 @@ export default function MovieForm({ onSuccess, movie }) {
       newErrors.Language = "At least one language is required";
     if (!form.Types || form.Types.length === 0)
       newErrors.Types = "At least one type is required";
-    // --- FIX: Only require Image if there are no new uploads selected ---
     if (
       (!form.Image || form.Image.length === 0) &&
       (!movieImages || movieImages.length === 0)
@@ -321,11 +320,11 @@ export default function MovieForm({ onSuccess, movie }) {
   // Handle form submission for add or update
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submit triggered"); // DEBUG
+    console.log("Form submit triggered");
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
-      console.log("Validation errors:", validationErrors); // DEBUG
+      console.log("Validation errors:", validationErrors); 
       setLoading(false);
       return;
     }
