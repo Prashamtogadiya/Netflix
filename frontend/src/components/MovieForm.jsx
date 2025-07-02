@@ -5,7 +5,170 @@ import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import { Rating, Typography, Box } from "@mui/material";
 
-// MovieForm component for adding or editing a movie
+
+// Text input field
+function FormTextField({ label, value, onChange, error, helperText, ...props }) {
+  return (
+    <TextField
+      variant="outlined"
+      label={label}
+      value={value}
+      onChange={onChange}
+      error={!!error}
+      helperText={helperText}
+      className="bg-gray-800 rounded-lg"
+      sx={{
+        "& label": { color: "white" },
+        "& label.Mui-focused": { color: "skyblue" },
+        "& .MuiInputBase-input": { color: "white" },
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": { borderColor: "gray" },
+          "&:hover fieldset": { borderColor: "lightgray" },
+          "&.Mui-focused fieldset": { borderColor: "skyblue" },
+        },
+      }}
+      {...props}
+    />
+  );
+}
+
+// Multi-value autocomplete field
+function FormMultiAutocomplete({ label, options, value, onChange, error, helperText }) {
+  return (
+    <Autocomplete
+      multiple
+      freeSolo
+      options={options}
+      value={value}
+      onChange={onChange}
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) => (
+          <Chip
+            label={option}
+            {...getTagProps({ index })}
+            sx={{ color: "white", backgroundColor: "#123561" }}
+          />
+        ))
+      }
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          variant="outlined"
+          label={label}
+          error={!!error}
+          helperText={helperText}
+          className="bg-gray-800 rounded-lg"
+          sx={{
+            "& label": { color: "white" },
+            "& label.Mui-focused": { color: "skyblue" },
+            "& .MuiInputBase-input": { color: "white" },
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "gray" },
+              "&:hover fieldset": { borderColor: "lightgray" },
+              "&.Mui-focused fieldset": { borderColor: "skyblue" },
+            },
+          }}
+        />
+      )}
+    />
+  );
+}
+
+// Single-value autocomplete field
+function FormSingleAutocomplete({ label, value, onChange, error, helperText, ...props }) {
+  return (
+    <Autocomplete
+      freeSolo
+      options={[]}
+      value={value}
+      onInputChange={(_, v) => onChange(v)}
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          variant="outlined"
+          label={label}
+          error={!!error}
+          helperText={helperText}
+          className="bg-gray-800 rounded-lg"
+          sx={{
+            "& label": { color: "white" },
+            "& label.Mui-focused": { color: "skyblue" },
+            "& .MuiInputBase-input": { color: "white" },
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "gray" },
+              "&:hover fieldset": { borderColor: "lightgray" },
+              "&.Mui-focused fieldset": { borderColor: "skyblue" },
+            },
+          }}
+          {...props}
+        />
+      )}
+    />
+  );
+}
+
+// Image upload field
+function ImageUploadField({ label, images, onChange, onRemove, existingImages, onRemoveExisting }) {
+  return (
+    <div className="md:col-span-2">
+      <label className="block text-white font-semibold mb-2">{label}</label>
+      <input
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={onChange}
+        className="block w-full text-white bg-gray-800 rounded-lg border border-gray-700 p-2"
+      />
+      <div className="flex gap-2 mt-2 flex-wrap">
+        {/* Existing images */}
+        {Array.isArray(existingImages) &&
+          existingImages.map((img, idx) => (
+            <div key={idx} className="relative">
+              <img
+                src={
+                  img.startsWith("http")
+                    ? img
+                    : `http://localhost:5000/uploads/${img}`
+                }
+                alt={label}
+                className="w-16 h-16 object-cover rounded"
+              />
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                onClick={() => onRemoveExisting(idx)}
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        {/* New images */}
+        {images && images.length > 0 &&
+          images.map((file, idx) => (
+            <div key={idx} className="relative">
+              <img
+                src={URL.createObjectURL(file)}
+                alt="preview"
+                className="w-16 h-16 object-cover rounded"
+              />
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                onClick={() => onRemove(idx)}
+                title="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+      </div>
+    </div>
+  );
+}
+
+// --- Main MovieForm Component ---
+
 export default function MovieForm({ onSuccess, movie }) {
   // Form state for all movie fields
   const [form, setForm] = useState(
@@ -308,16 +471,6 @@ export default function MovieForm({ onSuccess, movie }) {
         payload.Genre = Array.isArray(payload.Genre) ? payload.Genre : [];
       }
 
-      // --- CRITICAL: Check for admin role before allowing add ---
-      // If your backend requires admin, check user role here and show alert if not admin
-      // (Optional: Remove this block if not needed)
-      // const user = JSON.parse(localStorage.getItem("user"));
-      // if (!isEdit && (!user || user.role !== "admin")) {
-      //   alert("Only admin can add movies.");
-      //   setLoading(false);
-      //   return;
-      // }
-
       let response;
       if (isEdit) {
         response = await api.put("/movies/" + movie._id, payload);
@@ -347,14 +500,6 @@ export default function MovieForm({ onSuccess, movie }) {
     setLoading(false);
   };
 
-  // Always return a string for Autocomplete options
-  const safeGetOptionLabel = (option) => {
-    if (typeof option === "string") return option;
-    if (typeof option === "number") return option.toString();
-    if (option && typeof option === "object" && option.name) return option.name;
-    if (option && typeof option === "object" && option.value !== undefined) return String(option.value);
-    return "";
-  };
 
   // Add new actor to backend if not found in options
   const handleActorsChange = async (_, value) => {
@@ -390,181 +535,47 @@ export default function MovieForm({ onSuccess, movie }) {
       <h3 className="text-3xl font-extrabold mb-6 md:col-span-2 text-center text-red-500 tracking-wide drop-shadow-lg">
         {movie ? "Edit Movie" : "Add New Movie"}
       </h3>
-      <Autocomplete
-        freeSolo
-        options={[]}
-        value={typeof form.Title === "number" ? form.Title.toString() : form.Title}
-        onInputChange={(_, value) => handleAutoChange("Title", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Title"
-            placeholder="Add title..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Title}
-            helperText={errors.Title}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-            required
-          />
-        )}
+      <FormSingleAutocomplete
+        label="Title"
+        value={form.Title}
+        onChange={(v) => handleAutoChange("Title", v)}
+        error={errors.Title}
+        helperText={errors.Title}
+        required
       />
-      <Autocomplete
-        freeSolo
-        options={[]}
-        value={typeof form.Director === "number" ? form.Director.toString() : form.Director}
-        onInputChange={(_, value) => handleAutoChange("Director", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Director"
-            placeholder="Add director..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Director}
-            helperText={errors.Director}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-            required
-          />
-        )}
+      <FormSingleAutocomplete
+        label="Director"
+        value={form.Director}
+        onChange={(v) => handleAutoChange("Director", v)}
+        error={errors.Director}
+        helperText={errors.Director}
+        required
       />
-      {/* Writers */}
-      <Autocomplete
-        multiple
-        freeSolo
+      <FormMultiAutocomplete
+        label="Writers"
         options={[]}
         value={Array.isArray(form.Writers) ? form.Writers : []}
-        onChange={(_, value) => handleAutoChange("Writers", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Writers"
-            placeholder="Add writer..."
-            className="bg-gray-800 rounded-lg"
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
+        onChange={(_, v) => handleAutoChange("Writers", v)}
       />
-      {/* Language */}
-      <Autocomplete
-        multiple
-        freeSolo
+      <FormMultiAutocomplete
+        label="Languages"
         options={[
-          "English",
-          "Spanish",
-          "French",
-          "German",
-          "Chinese",
-          "Japanese",
-          "Hindi",
-          "Korean",
-          "Italian",
-          "Portuguese",
-          "Russian",
+          "English", "Spanish", "French", "German", "Chinese", "Japanese",
+          "Hindi", "Korean", "Italian", "Portuguese", "Russian"
         ]}
         value={Array.isArray(form.Language) ? form.Language : []}
-        onChange={(_, value) => handleAutoChange("Language", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Languages"
-            placeholder="Add language..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Language}
-            helperText={errors.Language}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
+        onChange={(_, v) => handleAutoChange("Language", v)}
+        error={errors.Language}
+        helperText={errors.Language}
       />
-      <Autocomplete
-        freeSolo
-        options={[]}
-        value={typeof form.Year === "number" ? form.Year.toString() : form.Year}
-        onInputChange={(_, value) => handleAutoChange("Year", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Year"
-            placeholder="Add year..."
-            className="bg-gray-800 rounded-lg"
-            type="number"
-            error={!!errors.Year}
-            helperText={errors.Year}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-            required
-          />
-        )}
+      <FormSingleAutocomplete
+        label="Year"
+        value={form.Year}
+        onChange={(v) => handleAutoChange("Year", v)}
+        error={errors.Year}
+        helperText={errors.Year}
+        type="number"
+        required
       />
       <Box
         className="bg-gray-800 rounded-lg p-3"
@@ -594,372 +605,83 @@ export default function MovieForm({ onSuccess, movie }) {
           <Typography sx={{ color: "red", fontSize: 12 }}>{errors.Rating}</Typography>
         )}
       </Box>
-      <Autocomplete
-        freeSolo
-        options={[]}
+      <FormSingleAutocomplete
+        label="Runtime (minutes)"
         value={form.Runtime}
-        onInputChange={(_, value) => handleAutoChange("Runtime", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Runtime (minutes)"
-            placeholder="Add runtime..."
-            className="bg-gray-800 rounded-lg"
-            type="number"
-            error={!!errors.Runtime}
-            helperText={errors.Runtime}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
+        onChange={(v) => handleAutoChange("Runtime", v)}
+        error={errors.Runtime}
+        helperText={errors.Runtime}
+        type="number"
       />
-      <Autocomplete
-        freeSolo
-        options={[]}
+      <FormSingleAutocomplete
+        label="Awards"
         value={form.Awards}
-        onInputChange={(_, value) => handleAutoChange("Awards", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Awards"
-            placeholder="Add awards..."
-            className="bg-gray-800 rounded-lg"
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
+        onChange={(v) => handleAutoChange("Awards", v)}
       />
-      <Autocomplete
-        freeSolo
-        options={[]}
+      <FormSingleAutocomplete
+        label="Searches"
         value={form.Searches}
-        onInputChange={(_, value) => handleAutoChange("Searches", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Searches"
-            placeholder="Add searches..."
-            className="bg-gray-800 rounded-lg"
-            type="number"
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
+        onChange={(v) => handleAutoChange("Searches", v)}
+        type="number"
       />
-      <Autocomplete
-        freeSolo
-        options={[]}
+      <FormSingleAutocomplete
+        label="Video URL"
         value={form.Video}
-        onInputChange={(_, value) => handleAutoChange("Video", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Video URL"
-            placeholder="Add video URL..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Video}
-            helperText={errors.Video}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
+        onChange={(v) => handleAutoChange("Video", v)}
+        error={errors.Video}
+        helperText={errors.Video}
       />
-      <TextField
-        variant="outlined"
+      <FormTextField
         label="Description"
-        placeholder="Add description..."
-        className="bg-gray-800 rounded-lg md:col-span-2"
-        error={!!errors.Description}
-        helperText={errors.Description}
-        sx={{
-          "& label": { color: "white" },
-          "& label.Mui-focused": { color: "skyblue" },
-          "& .MuiInputBase-input": { color: "white" },
-          "& .MuiOutlinedInput-root": {
-            "& fieldset": { borderColor: "gray" },
-            "&:hover fieldset": { borderColor: "lightgray" },
-            "&.Mui-focused fieldset": { borderColor: "skyblue" },
-          },
-        }}
-        multiline
-        rows={4}
         value={form.Description}
         onChange={e => handleAutoChange("Description", e.target.value)}
+        error={errors.Description}
+        helperText={errors.Description}
+        multiline
+        rows={4}
         required
+        className="md:col-span-2"
       />
-      <Autocomplete
-        multiple
-        freeSolo
+      <FormMultiAutocomplete
+        label="Actors"
         options={actorOptions.map((a) => a.name)}
         value={normalizeValue(form.Actors, actorOptions)}
         onChange={handleActorsChange}
-        getOptionLabel={safeGetOptionLabel}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Actors"
-            placeholder="Add actor..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Actors}
-            helperText={errors.Actors}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
+        error={errors.Actors}
+        helperText={errors.Actors}
       />
-      <Autocomplete
-        multiple
-        freeSolo
+      <FormMultiAutocomplete
+        label="Genres"
         options={genreOptions.map((g) => g.name)}
         value={normalizeValue(form.Genre, genreOptions)}
-        onChange={(_, value) => handleAutoChange("Genre", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Genres"
-            placeholder="Add genre..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Genre}
-            helperText={errors.Genre}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
+        onChange={(_, v) => handleAutoChange("Genre", v)}
+        error={errors.Genre}
+        helperText={errors.Genre}
       />
-      <Autocomplete
-        multiple
-        freeSolo
+      <FormMultiAutocomplete
+        label="Types"
         options={["Movie", "TV Show", "Documentary", "Series"]}
         value={form.Types}
-        onChange={(_, value) => handleAutoChange("Types", value)}
-        getOptionLabel={safeGetOptionLabel}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) => (
-            <Chip
-              label={option}
-              {...getTagProps({ index })}
-              sx={{ color: "white", backgroundColor: "#123561" }}
-            />
-          ))
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="outlined"
-            label="Types"
-            placeholder="Add type..."
-            className="bg-gray-800 rounded-lg"
-            error={!!errors.Types}
-            helperText={errors.Types}
-            sx={{
-              "& label": { color: "white" },
-              "& label.Mui-focused": { color: "skyblue" },
-              "& .MuiInputBase-input": { color: "white" },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "gray" },
-                "&:hover fieldset": { borderColor: "lightgray" },
-                "&.Mui-focused fieldset": { borderColor: "skyblue" },
-              },
-            }}
-          />
-        )}
-        className="md:col-span-2"
+        onChange={(_, v) => handleAutoChange("Types", v)}
+        error={errors.Types}
+        helperText={errors.Types}
       />
-      {/* Movie Images Upload */}
-      <div className="md:col-span-2">
-        <label className="block text-white font-semibold mb-2">
-          Movie Images (upload)
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleMovieImageChange}
-          className="block w-full text-white bg-gray-800 rounded-lg border border-gray-700 p-2"
-        />
-        {/* Show previews if any */}
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {/* Existing images (from DB) */}
-          {Array.isArray(form.Image) &&
-            form.Image.map((img, idx) => (
-              <div key={idx} className="relative">
-                <img
-                  src={
-                    img.startsWith("http")
-                      ? img
-                      : `http://localhost:5000/uploads/${img}`
-                  }
-                  alt="movie"
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  onClick={() => handleRemoveExistingMovieImage(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          {/* New images (to be uploaded) */}
-          {movieImages && movieImages.length > 0 &&
-            movieImages.map((file, idx) => (
-              <div key={idx} className="relative">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt="preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  onClick={() => handleRemoveMovieImage(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
-      {/* Actor Images Upload */}
-      <div className="md:col-span-2">
-        <label className="block text-white font-semibold mb-2">
-          Actor Images (upload)
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleActorImageChange}
-          className="block w-full text-white bg-gray-800 rounded-lg border border-gray-700 p-2"
-        />
-        <div className="flex gap-2 mt-2 flex-wrap">
-          {/* Existing images (from DB) */}
-          {Array.isArray(form.ActorImage) &&
-            form.ActorImage.map((img, idx) => (
-              <div key={idx} className="relative">
-                <img
-                  src={
-                    img.startsWith("http")
-                      ? img
-                      : `http://localhost:5000/uploads/${img}`
-                  }
-                  alt="actor"
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  onClick={() => handleRemoveExistingActorImage(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          {/* New images (to be uploaded) */}
-          {actorImages && actorImages.length > 0 &&
-            actorImages.map((file, idx) => (
-              <div key={idx} className="relative">
-                <img
-                  src={URL.createObjectURL(file)}
-                  alt="preview"
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <button
-                  type="button"
-                  className="absolute top-0 right-0 bg-black bg-opacity-60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                  onClick={() => handleRemoveActorImage(idx)}
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-        </div>
-      </div>
+      <ImageUploadField
+        label="Movie Images (upload)"
+        images={movieImages}
+        onChange={handleMovieImageChange}
+        onRemove={handleRemoveMovieImage}
+        existingImages={form.Image}
+        onRemoveExisting={handleRemoveExistingMovieImage}
+      />
+      <ImageUploadField
+        label="Actor Images (upload)"
+        images={actorImages}
+        onChange={handleActorImageChange}
+        onRemove={handleRemoveActorImage}
+        existingImages={form.ActorImage}
+        onRemoveExisting={handleRemoveExistingActorImage}
+      />
       <button
         type="submit"
         className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold text-lg md:col-span-2 mt-4 shadow-lg transition"
@@ -970,4 +692,4 @@ export default function MovieForm({ onSuccess, movie }) {
     </form>
   );
 }
-
+       
