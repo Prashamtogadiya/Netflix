@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 // import { useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
+import {  useDispatch } from "react-redux";
+
 import api from "../api";
+import { clearUser } from "../features/user/userSlice";
+import { clearProfiles } from "../features/profiles/profileSlice";
 import { useNavigate } from "react-router-dom";
 export default function AdminNavbar() {
   const [dropdown, setDropdown] = useState(false);
   const dropdownRef = useRef(null);
+    const dispatch = useDispatch();
+  
   const navigate = useNavigate();
   //   const location = useLocation();
 
@@ -22,13 +28,20 @@ export default function AdminNavbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [dropdown]);
 
+  // const handleLogout = async () => {
+  //   await api.post("/auth/logout");
+
+  //   localStorage.removeItem("user");
+  //   localStorage.removeItem("selectedProfile");
+  //   navigate("/login");
+  // };
   const handleLogout = async () => {
     await api.post("/auth/logout");
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("selectedProfile");
+    dispatch(clearUser());
+    dispatch(clearProfiles());
     navigate("/login");
   };
+
 
   return (
     <nav className="fixed top-0 left-0 w-full z-30 bg-gray-950 border-b border-gray-800 flex items-center justify-between px-8 py-4">

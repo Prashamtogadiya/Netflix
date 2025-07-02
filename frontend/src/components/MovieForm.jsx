@@ -4,7 +4,10 @@ import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import { Rating, Typography, Box } from "@mui/material";
+
+// MovieForm component for adding or editing a movie
 export default function MovieForm({ onSuccess, movie }) {
+  // Form state for all movie fields
   const [form, setForm] = useState(
     movie || {
       Title: "",
@@ -25,19 +28,23 @@ export default function MovieForm({ onSuccess, movie }) {
       ActorImage: [],
     }
   );
+  // Loading and error state
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  // Options for genres and actors (fetched from backend)
   const [genreOptions, setGenreOptions] = useState([]);
   const [actorOptions, setActorOptions] = useState([]);
+  // Local state for new images to upload
   const [movieImages, setMovieImages] = useState([]);
   const [actorImages, setActorImages] = useState([]);
 
+  // Fetch genres and actors from backend when component mounts
   useEffect(() => {
     api.get("/movies/genres").then((res) => setGenreOptions(res.data || []));
     api.get("/movies/actors").then((res) => setActorOptions(res.data || []));
   }, []);
 
-  // Validation function
+  // Validate form fields before submitting
   const validate = () => {
     const newErrors = {};
     if (!form.Title || form.Title.trim().length < 2)
@@ -60,14 +67,19 @@ export default function MovieForm({ onSuccess, movie }) {
       newErrors.Language = "At least one language is required";
     if (!form.Types || form.Types.length === 0)
       newErrors.Types = "At least one type is required";
-    if (!form.Image || form.Image.length === 0)
+    // --- FIX: Only require Image if there are no new uploads selected ---
+    if (
+      (!form.Image || form.Image.length === 0) &&
+      (!movieImages || movieImages.length === 0)
+    ) {
       newErrors.Image = "At least one image URL is required";
+    }
     if (!form.Video || !/^https?:\/\/.+/.test(form.Video))
       newErrors.Video = "A valid video URL is required";
     return newErrors;
   };
 
-  // Map names to IDs for submission
+  // Convert selected names to IDs for backend submission
   const getIdsFromNames = (selected, options) => {
     return selected.map((sel) => {
       const found = options.find(
@@ -77,7 +89,7 @@ export default function MovieForm({ onSuccess, movie }) {
     });
   };
 
-  // Normalize Autocomplete values for edit mode
+  // Normalize values for Autocomplete fields (for edit mode)
   const normalizeValue = (value, options) => {
     if (!Array.isArray(value)) return [];
     return value.map((v) => {
@@ -90,6 +102,7 @@ export default function MovieForm({ onSuccess, movie }) {
     });
   };
 
+  // Reset actors and genres if not editing a movie
   useEffect(() => {
     if (!movie) {
       setForm((prev) => ({
@@ -100,18 +113,18 @@ export default function MovieForm({ onSuccess, movie }) {
     }
   }, [movie]);
 
+  // Handle changes in Autocomplete and TextField inputs
   const handleAutoChange = (name, value) => {
     setForm({ ...form, [name]: value });
     setErrors({ ...errors, [name]: undefined });
   };
 
-  // Handle movie image file selection
+  // Handle selection of new movie images (before upload)
   const handleMovieImageChange = (e) => {
-    // For update: append new files to existing images (if editing)
     setMovieImages((prev) => [...prev, ...Array.from(e.target.files)]);
   };
 
-  // Handle actor image file selection
+  // Handle selection of new actor images (before upload)
   const handleActorImageChange = (e) => {
     setActorImages((prev) => [...prev, ...Array.from(e.target.files)]);
   };
@@ -126,6 +139,7 @@ export default function MovieForm({ onSuccess, movie }) {
     setActorImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  // Remove an existing movie image (already saved in DB)
   const handleRemoveExistingMovieImage = (idx) => {
     setForm((prev) => ({
       ...prev,
@@ -133,6 +147,7 @@ export default function MovieForm({ onSuccess, movie }) {
     }));
   };
 
+  // Remove an existing actor image (already saved in DB)
   const handleRemoveExistingActorImage = (idx) => {
     setForm((prev) => ({
       ...prev,
@@ -140,65 +155,89 @@ export default function MovieForm({ onSuccess, movie }) {
     }));
   };
 
+  // Handle form submission for add or update
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Form submit triggered"); // DEBUG
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
+      console.log("Validation errors:", validationErrors); // DEBUG
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      // 1. Upload movie images if any
+      // Upload new movie images if any
       let uploadedMovieImageNames = [];
       if (movieImages && movieImages.length > 0) {
         const formData = new FormData();
-        // Only append files that are File objects (not empty or undefined)
         movieImages.forEach((file) => {
-          if (file instanceof File) formData.append("images", file);
+          if (file && file instanceof File) formData.append("images", file);
         });
-        if (formData.has("images")) {
-          const res = await api.post("/movies/upload/movie-images", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          uploadedMovieImageNames = res.data.filenames;
+        console.log("Files to upload (movieImages):", movieImages); // DEBUG
+        if (formData.getAll("images").length > 0) {
+          try {
+            const res = await api.post("/movies/upload/movie-images", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            uploadedMovieImageNames = res.data.filenames;
+            console.log("Uploaded movie image names:", uploadedMovieImageNames); // DEBUG
+          } catch (uploadErr) {
+            console.error("Movie image upload failed:", uploadErr);
+            alert("Movie image upload failed. Check console.");
+            setLoading(false);
+            return;
+          }
+        } else {
+          console.log("No files appended to FormData for movie images."); // DEBUG
         }
+      } else {
+        console.log("No movieImages selected."); // DEBUG
       }
 
-      // 2. Upload actor images if any (multiple)
+      // Upload new actor images if any
       let uploadedActorImageNames = [];
       if (actorImages && actorImages.length > 0) {
         const formData = new FormData();
         actorImages.forEach((file) => {
-          if (file instanceof File) formData.append("images", file);
+          if (file && file instanceof File) formData.append("images", file);
         });
-        if (formData.has("images")) {
-          const res = await api.post("/movies/upload/actor-images", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          uploadedActorImageNames = res.data.filenames;
+        console.log("Files to upload (actorImages):", actorImages); // DEBUG
+        if (formData.getAll("images").length > 0) {
+          try {
+            const res = await api.post("/movies/upload/actor-images", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+            uploadedActorImageNames = res.data.filenames;
+            console.log("Uploaded actor image names:", uploadedActorImageNames); // DEBUG
+          } catch (uploadErr) {
+            console.error("Actor image upload failed:", uploadErr);
+            alert("Actor image upload failed. Check console.");
+            setLoading(false);
+            return;
+          }
+        } else {
+          console.log("No files appended to FormData for actor images."); // DEBUG
         }
+      } else {
+        console.log("No actorImages selected."); // DEBUG
       }
 
+      // Prepare payload for backend
       const actors = form.Actors && form.Actors.length > 0 ? form.Actors : [];
       const genres = form.Genre && form.Genre.length > 0 ? form.Genre : [];
       const isEdit = !!(movie && movie._id);
 
-      // For update: use only the images left in form.Image plus new uploads
-      // For add: use only new uploads
+      // For add: use only new uploads, for edit: merge with existing
       const finalImages = isEdit
         ? [...(Array.isArray(form.Image) ? form.Image : []), ...uploadedMovieImageNames]
         : uploadedMovieImageNames;
-
-      // Remove empty/falsey values and ensure all are strings
       const filteredImages = finalImages.filter((img) => !!img && typeof img === "string");
 
-      // For actor images, same logic
       const finalActorImages = isEdit
         ? [...(Array.isArray(form.ActorImage) ? form.ActorImage : []), ...uploadedActorImageNames]
         : uploadedActorImageNames;
-
       const filteredActorImages = finalActorImages.filter((img) => !!img && typeof img === "string");
 
       const payload = {
@@ -244,7 +283,9 @@ export default function MovieForm({ onSuccess, movie }) {
         ActorImage: filteredActorImages.slice(0, Array.isArray(actors) ? actors.length : 0),
       };
 
-      // Remove only undefined/null fields, but DO NOT remove empty arrays for Image/ActorImage
+      console.log("Final payload", payload); // DEBUG
+
+      // Remove only undefined/null fields, but keep empty arrays for images
       Object.keys(payload).forEach((key) => {
         if (
           payload[key] === undefined ||
@@ -254,50 +295,69 @@ export default function MovieForm({ onSuccess, movie }) {
         }
       });
 
-      // For add: require at least one image
-      if (!isEdit && (!payload.Image || payload.Image.length === 0)) {
+      // Require at least one image for add or update
+      if (!payload.Image || payload.Image.length === 0) {
         alert("Please upload at least one movie image.");
         setLoading(false);
         return;
       }
-      // For update: require at least one image
-      if (isEdit && (!payload.Image || payload.Image.length === 0)) {
-        alert("Please keep at least one movie image.");
+
+      // For add, ensure Actors and Genre are arrays (not undefined)
+      if (!isEdit) {
+        payload.Actors = Array.isArray(payload.Actors) ? payload.Actors : [];
+        payload.Genre = Array.isArray(payload.Genre) ? payload.Genre : [];
+      }
+
+      // --- CRITICAL: Check for admin role before allowing add ---
+      // If your backend requires admin, check user role here and show alert if not admin
+      // (Optional: Remove this block if not needed)
+      // const user = JSON.parse(localStorage.getItem("user"));
+      // if (!isEdit && (!user || user.role !== "admin")) {
+      //   alert("Only admin can add movies.");
+      //   setLoading(false);
+      //   return;
+      // }
+
+      let response;
+      if (isEdit) {
+        response = await api.put("/movies/" + movie._id, payload);
+      } else {
+        response = await api.post("/movies", payload);
+      }
+      console.log("Backend response:", response); // DEBUG
+      // Accept both 200 and 201 as success
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error(response.data?.message || "Failed to save movie");
+      }
+      // If backend returns movie object, check for _id
+      if (!response.data || (!response.data._id && !response.data.movie && !response.data.success)) {
+        alert("Movie was not added. Backend did not return a valid movie object.");
         setLoading(false);
         return;
       }
-
-      if (isEdit) {
-        await api.put(`/movies/${movie._id}`, payload);
-      } else {
-        payload.Actors = payload.Actors || [];
-        payload.Genre = payload.Genre || [];
-        await api.post("/movies", payload);
-      }
       onSuccess();
     } catch (err) {
-      console.error("Error saving movie:", err);
+      console.error("Movie save error:", err); // DEBUG
       alert(
         err.response?.data?.message ||
-          "Failed to save movie. Please check all required fields and try again."
+        err.message ||
+        "Failed to save movie. Please check all required fields and try again."
       );
     }
     setLoading(false);
   };
 
-  // Fix for Autocomplete getOptionLabel warnings (always return string)
+  // Always return a string for Autocomplete options
   const safeGetOptionLabel = (option) => {
     if (typeof option === "string") return option;
     if (typeof option === "number") return option.toString();
     if (option && typeof option === "object" && option.name) return option.name;
-    // fallback for objects with value property (like numbers in array)
     if (option && typeof option === "object" && option.value !== undefined) return String(option.value);
     return "";
   };
 
-  // Add new actor if not found in options
+  // Add new actor to backend if not found in options
   const handleActorsChange = async (_, value) => {
-    // Check for new actors (not in actorOptions)
     const newActors = value.filter(
       (v) =>
         typeof v === "string" &&
@@ -306,7 +366,6 @@ export default function MovieForm({ onSuccess, movie }) {
     let updatedActorOptions = [...actorOptions];
     if (newActors.length > 0) {
       try {
-        // Add all new actors to backend
         const added = await Promise.all(
           newActors.map((name) =>
             api.post("/movies/actors", { name }).then((res) => res.data)
@@ -316,7 +375,6 @@ export default function MovieForm({ onSuccess, movie }) {
         setActorOptions(updatedActorOptions);
       } catch (err) {
         console.error("Error adding new actors:", err);
-        // Optionally show error
       }
     }
     setForm({ ...form, Actors: value });
@@ -912,3 +970,4 @@ export default function MovieForm({ onSuccess, movie }) {
     </form>
   );
 }
+

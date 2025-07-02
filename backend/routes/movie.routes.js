@@ -11,7 +11,9 @@ const {
   createGenre,
   createActor,
   getGenres,
-  getActors
+  getActors,
+  uploadMovieImages,
+  uploadActorImages
 } = require('../controllers/movie.controller.js');
 const { authenticate, verifyAdmin } = require('../middlewares/auth.middleware.js');
 const multer = require('multer');
@@ -47,23 +49,25 @@ router.get('/search', searchMoviessByPrefix);
 
 // Movie CRUD
 router.post('/', authenticate, verifyAdmin, createMovie);
+
 router.get('/', getMovies);
 router.get('/:id', getMovieById);
 router.put('/:id', authenticate, verifyAdmin, updateMovie);
 router.delete('/:id', authenticate, verifyAdmin, deleteMovie);
 
 // Upload movie images (multiple)
-router.post('/upload/movie-images', upload.array('images', 5), (req, res) => {
-  // Returns array of filenames
-  const files = req.files || [];
-  res.json({ filenames: files.map(f => f.filename) });
-});
+router.post(
+  '/upload/movie-images',
+  upload.array('images', 5), // <-- limit to 5 files, increase if needed
+  uploadMovieImages
+);
 
 // Upload actor images (multiple)
-router.post('/upload/actor-images', upload.array('images', 5), (req, res) => {
-  const files = req.files || [];
-  res.json({ filenames: files.map(f => f.filename) });
-});
+router.post(
+  '/upload/actor-images',
+  upload.array('images', 5), // <-- limit to 5 files, increase if needed
+  uploadActorImages
+);
 
 // Export the router to be used in server.js
 module.exports = router;
