@@ -168,7 +168,6 @@ function ImageUploadField({ label, images, onChange, onRemove, existingImages, o
 }
 
 // --- Main MovieForm Component ---
-
 export default function MovieForm({ onSuccess, movie }) {
   // Form state for all movie fields
   const [form, setForm] = useState(
@@ -253,14 +252,31 @@ export default function MovieForm({ onSuccess, movie }) {
 
   // Normalize values for Autocomplete fields (for edit mode)
   const normalizeValue = (value, options) => {
+    // value: the array of selected items (could be strings, objects, or IDs)
+    // options: the list of all possible options (e.g., all actors or genres from the backend)
+
     if (!Array.isArray(value)) return [];
+    // If value is not an array, return an empty array (safety check).
+
     return value.map((v) => {
-      if (typeof v === "object" && v !== null && v.name) return v.name;
-      if (typeof v === "string") return v;
-      if (typeof v === "number") return v.toString();
+      // For each item in the value array:
+      if (typeof v === "object" && v !== null && v.name) 
+        // If v is an object and has a 'name' property (e.g., { _id: "...", name: "Action" })
+        return v.name; // Return the name string (e.g., "Action")
+
+      if (typeof v === "string") 
+        // If v is already a string (e.g., "Action")
+        return v; // Return it as is
+
+      if (typeof v === "number") 
+        // If v is a number (e.g., 123)
+        return v.toString(); // Convert to string
+
+      // If v is something else (like an ID), try to find the matching option in options
       const found = options.find((opt) => opt._id === v);
-      if (found) return found.name;
-      return "";
+      if (found) return found.name; // If found, return its name
+
+      return ""; // If nothing matches, return an empty string
     });
   };
 
@@ -337,14 +353,14 @@ export default function MovieForm({ onSuccess, movie }) {
         movieImages.forEach((file) => {
           if (file && file instanceof File) formData.append("images", file);
         });
-        console.log("Files to upload (movieImages):", movieImages); // DEBUG
+        console.log("Files to upload (movieImages):", movieImages); 
         if (formData.getAll("images").length > 0) {
           try {
             const res = await api.post("/movies/upload/movie-images", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
             uploadedMovieImageNames = res.data.filenames;
-            console.log("Uploaded movie image names:", uploadedMovieImageNames); // DEBUG
+            console.log("Uploaded movie image names:", uploadedMovieImageNames); 
           } catch (uploadErr) {
             console.error("Movie image upload failed:", uploadErr);
             alert("Movie image upload failed. Check console.");
@@ -352,10 +368,10 @@ export default function MovieForm({ onSuccess, movie }) {
             return;
           }
         } else {
-          console.log("No files appended to FormData for movie images."); // DEBUG
+          console.log("No files appended to FormData for movie images."); 
         }
       } else {
-        console.log("No movieImages selected."); // DEBUG
+        console.log("No movieImages selected."); 
       }
 
       // Upload new actor images if any
@@ -365,14 +381,14 @@ export default function MovieForm({ onSuccess, movie }) {
         actorImages.forEach((file) => {
           if (file && file instanceof File) formData.append("images", file);
         });
-        console.log("Files to upload (actorImages):", actorImages); // DEBUG
+        console.log("Files to upload (actorImages):", actorImages); 
         if (formData.getAll("images").length > 0) {
           try {
             const res = await api.post("/movies/upload/actor-images", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
             uploadedActorImageNames = res.data.filenames;
-            console.log("Uploaded actor image names:", uploadedActorImageNames); // DEBUG
+            console.log("Uploaded actor image names:", uploadedActorImageNames); 
           } catch (uploadErr) {
             console.error("Actor image upload failed:", uploadErr);
             alert("Actor image upload failed. Check console.");
@@ -380,10 +396,10 @@ export default function MovieForm({ onSuccess, movie }) {
             return;
           }
         } else {
-          console.log("No files appended to FormData for actor images."); // DEBUG
+          console.log("No files appended to FormData for actor images."); 
         }
       } else {
-        console.log("No actorImages selected."); // DEBUG
+        console.log("No actorImages selected."); 
       }
 
       // Prepare payload for backend
@@ -445,7 +461,7 @@ export default function MovieForm({ onSuccess, movie }) {
         ActorImage: filteredActorImages.slice(0, Array.isArray(actors) ? actors.length : 0),
       };
 
-      console.log("Final payload", payload); // DEBUG
+      console.log("Final payload", payload); 
 
       // Remove only undefined/null fields, but keep empty arrays for images
       Object.keys(payload).forEach((key) => {
@@ -476,8 +492,7 @@ export default function MovieForm({ onSuccess, movie }) {
       } else {
         response = await api.post("/movies", payload);
       }
-      console.log("Backend response:", response); // DEBUG
-      // Accept both 200 and 201 as success
+      console.log("Backend response:", response);
       if (response.status !== 200 && response.status !== 201) {
         throw new Error(response.data?.message || "Failed to save movie");
       }
@@ -489,7 +504,7 @@ export default function MovieForm({ onSuccess, movie }) {
       }
       onSuccess();
     } catch (err) {
-      console.error("Movie save error:", err); // DEBUG
+      console.error("Movie save error:", err); 
       alert(
         err.response?.data?.message ||
         err.message ||
@@ -691,4 +706,4 @@ export default function MovieForm({ onSuccess, movie }) {
     </form>
   );
 }
-       
+

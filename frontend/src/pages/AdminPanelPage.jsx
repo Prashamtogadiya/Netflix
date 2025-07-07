@@ -128,7 +128,7 @@ export default function AdminPanelPage() {
       const timer = setTimeout(() => setSnackbar({ ...snackbar, open: false }), 2000);
       return () => clearTimeout(timer);
     }
-  }, [snackbar.open]);
+  }, [snackbar]);
 
   if (loading) return <NetflixLoader />;
 

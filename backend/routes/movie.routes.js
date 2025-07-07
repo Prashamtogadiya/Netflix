@@ -22,18 +22,23 @@ const path = require('path');
 // Multer config for movie and actor images
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Ensure the uploads directory exists
+    // 1. This function tells Multer where to save uploaded files.
+    // It sets the destination to the 'uploads' folder in your backend.
+    // If the folder doesn't exist, it creates it.
     const uploadPath = path.join(__dirname, '../uploads');
     const fs = require('fs');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
-    cb(null, uploadPath);
+    cb(null, uploadPath); // cb(null, folderPath) tells Multer where to save the file
   },
   filename: function (req, file, cb) {
-    // Save with unique timestamp + original name
+    // 2. This function tells Multer how to name each uploaded file.
+    // It uses the current timestamp + field name + original extension.
+    // Example: 1712345678901-images.jpg
     const ext = path.extname(file.originalname);
     cb(null, `${Date.now()}-${file.fieldname}${ext}`);
+    // The filename is what gets stored in the DB (by your controller, not by Multer itself)
   }
 });
 const upload = multer({ storage });
@@ -58,14 +63,14 @@ router.delete('/:id', authenticate, verifyAdmin, deleteMovie);
 // Upload movie images (multiple)
 router.post(
   '/upload/movie-images',
-  upload.array('images', 5), // <-- limit to 5 files, increase if needed
+  upload.array('images', 5), 
   uploadMovieImages
 );
 
 // Upload actor images (multiple)
 router.post(
   '/upload/actor-images',
-  upload.array('images', 5), // <-- limit to 5 files, increase if needed
+  upload.array('images', 5), 
   uploadActorImages
 );
 
