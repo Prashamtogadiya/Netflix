@@ -22,6 +22,7 @@ export default function AllMoviesPage() {
   const [fetchingMore, setFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [watchedCategories, setWatchedCategories] = useState({});
 
   // Redux and router hooks
   const profile = useSelector((state) => state.profiles.selectedProfile);
@@ -79,6 +80,62 @@ export default function AllMoviesPage() {
     },
     [category, fetchingMore]
   );
+
+  // Fetch watched categories for the current profile
+  useEffect(() => {
+    if (!profile) return;
+    api.post("/profiles/watched", { profileId: profile._id })
+      .then((res) => {
+        setWatchedCategories(res.data.watchedCategories || {});
+      })
+      .catch(() => {});
+  }, [profile]);
+
+  const mostWatchedCategory = React.useMemo(() => {
+    if (!watchedCategories) return null;
+    let max = 0, result = null;
+    for (const [cat, count] of Object.entries(watchedCategories)) {
+      if (count > max) {
+        max = count;
+        result = cat;
+      }
+    }
+    return result;
+  }, [watchedCategories]);
+
+  // Prioritize movies from most-watched category
+  const prioritizedMovies = mostWatchedCategory
+    ? [
+        ...movies.filter(
+          (movie) =>
+            Array.isArray(movie.Genre) &&
+            movie.Genre.some(
+              (g) =>
+                (typeof g === "object" && g !== null && g.name
+                  ? g.name
+                  : typeof g === "string"
+                  ? g
+                  : ""
+                ).trim().toLowerCase() === mostWatchedCategory.trim().toLowerCase()
+            )
+        ),
+        ...movies.filter(
+          (movie) =>
+            !(
+              Array.isArray(movie.Genre) &&
+              movie.Genre.some(
+                (g) =>
+                  (typeof g === "object" && g !== null && g.name
+                    ? g.name
+                    : typeof g === "string"
+                    ? g
+                    : ""
+                  ).trim().toLowerCase() === mostWatchedCategory.trim().toLowerCase()
+              )
+            )
+        ),
+      ]
+    : movies;
 
   // Fetch first page or when category changes
   useEffect(() => {
@@ -138,13 +195,13 @@ export default function AllMoviesPage() {
         {/* Movie grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
           {/* Show message if no movies */}
-          {movies.length === 0 && !loading && (
+          {prioritizedMovies.length === 0 && !loading && (
             <div className="text-gray-400 col-span-full text-center">
               No movies found.
             </div>
           )}
           {/* Render each movie card */}
-          {movies.map((movie) => (
+          {prioritizedMovies.map((movie) => (
             <div
               key={movie._id}
               className="bg-gray-900 rounded-lg shadow-lg overflow-hidden cursor-pointer group transition hover:scale-105"

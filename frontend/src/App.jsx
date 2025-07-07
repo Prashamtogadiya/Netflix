@@ -113,6 +113,14 @@ function App() {
           }
         />
         <Route
+          path="/tvshows"
+          element={
+            <RequireAuth>
+              <Movies />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/allmovies"
           element={
             <RequireAuth>

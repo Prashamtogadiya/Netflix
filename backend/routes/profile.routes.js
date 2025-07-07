@@ -1,7 +1,7 @@
 // Import express for routing
 const express = require('express');
 // Import profile controllers
-const { createProfile, getProfiles, updateProfile, deleteProfile } = require('../controllers/profile.controller.js');
+const { createProfile, getProfiles, updateProfile, deleteProfile, updateWatchedCategories, getWatchedCategories } = require('../controllers/profile.controller.js');
 const { addMovieToMyList, removeMovieFromMyList, getMyList } = require('../controllers/profile.controller.js');
 
 // Import authentication middleware to protect routes
@@ -11,6 +11,10 @@ const router = express.Router();
 // All routes below require authentication
 router.use(authenticate);
 
+// Route to get watched categories for a profile
+router.post('/watched', getWatchedCategories);
+// Route to update watched categories for a profile
+router.post('/watched/update', updateWatchedCategories);
 // Route to create a new profile
 router.post('/', createProfile);
 // Route to get all profiles for the logged-in user

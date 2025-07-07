@@ -1,6 +1,8 @@
 // Import Profile and User models for database operations
 const Profile = require('../models/Profile.js');
 const User = require('../models/User.js');
+// FIX: Only import Movie, not destructure
+const Movie = require('../models/Movie.js').Movie;
 
 // Create a new profile for the logged-in user
 exports.createProfile = async (req, res) => {
@@ -147,3 +149,72 @@ exports.getMyList = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch My List', error: err.message });
   }
 };
+
+
+// Update the watched categories map for a profile
+exports.updateWatchedCategories = async (req, res) => {
+  const { profileId, movieId } = req.body;
+  try {
+    if (!profileId || !movieId) {
+      console.error("Missing profileId or movieId", { profileId, movieId });
+      return res.status(400).json({ message: 'profileId and movieId are required' });
+    }
+    const profile = await Profile.findById(profileId);
+    const movie = await Movie.findById(movieId).populate('Genre', 'name');
+    if (!profile || !movie) {
+      console.error("Profile or movie not found", { profile, movie });
+      return res.status(404).json({ message: 'Profile or movie not found' });
+    }
+    // Ensure watchedCategories is an object
+    if (!profile.watchedCategories || typeof profile.watchedCategories !== 'object') {
+      profile.watchedCategories = {};
+    }
+    // Defensive: handle Genre as array of objects, strings, or ObjectIds
+    let updated = false;
+    if (Array.isArray(movie.Genre)) {
+      movie.Genre.forEach((genre) => {
+        let name = "";
+        if (typeof genre === "object" && genre !== null) {
+          name = genre.name || genre.toString();
+        } else if (typeof genre === "string") {
+          name = genre;
+        }
+        if (!name) return;
+        profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
+        updated = true;
+      });
+    } else if (movie.Genre) {
+      let name = "";
+      if (typeof movie.Genre === "object" && movie.Genre !== null) {
+        name = movie.Genre.name || movie.Genre.toString();
+      } else if (typeof movie.Genre === "string") {
+        name = movie.Genre;
+      }
+      if (name) {
+        profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
+        updated = true;
+      }
+    }
+    if (updated) {
+      profile.markModified('watchedCategories');
+      await profile.save();
+    }
+    res.json({ message: 'Watched categories updated', watchedCategories: profile.watchedCategories });
+  } catch (err) {
+    console.error("updateWatchedCategories error:", err); // <-- Add this for debugging
+    res.status(500).json({ message: 'Failed to update watched categories', error: err.message });
+  }
+}
+
+exports.getWatchedCategories = async (req, res) => {
+  const { profileId} = req.body;
+  try{
+    const profile = await Profile.findById(profileId);
+    if (!profile) {
+      return res.status(404).json({ message: 'Profile not found' });
+    } 
+    res.json({watchedCategories: profile.watchedCategories});
+  }catch (err) {
+    res.status(500).json({ message: 'Failed to fetch watched categories', error: err.message });
+  }
+}

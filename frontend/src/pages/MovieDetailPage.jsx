@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../api";
 import Navbar from "../components/Navbar";
@@ -30,6 +30,7 @@ function Flex({ children, gap = "3", mt = "0", justify = "start", ...props }) {
 
 export default function MovieDetailPage() {
   const { movieId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -50,8 +51,11 @@ export default function MovieDetailPage() {
   const [alertOpen, setAlertOpen] = useState(false);
   const [alertType, setAlertType] = useState("add"); // "add" or "remove"
   const [pendingAction, setPendingAction] = useState(null);
+  const [watchedCategories, setWatchedCategories] = useState({});
 
+  // Combine reset and fetch logic into one effect
   useEffect(() => {
+    setMovie(null);
     setLoading(true);
     const MIN_LOADING_TIME = 1000; 
     const startTime = Date.now();
@@ -76,7 +80,7 @@ export default function MovieDetailPage() {
     };
 
     fetchData();
-  }, [movieId]);
+  }, [movieId, location.key]);
 
   useEffect(() => {
     if (!profile) return;
@@ -115,6 +119,60 @@ export default function MovieDetailPage() {
       })
       .catch(() => setMovies([]));
   }, []);
+
+  // Track watched category when movie is loaded and profile exists
+  useEffect(() => {
+    if (!profile || !movie?._id) return;
+    api.post("/profiles/watched/update", {
+      profileId: profile._id,
+      movieId: movie._id,
+    }).catch(() => {});
+  }, [profile, movie?._id]);
+
+  // Fetch watched categories for the current profile
+  useEffect(() => {
+    if (!profile) return;
+    api.post("/profiles/watched", { profileId: profile._id })
+      .then((res) => {
+        setWatchedCategories(res.data.watchedCategories || {});
+      })
+      .catch(() => {});
+  }, [profile]);
+
+  const mostWatchedCategory = React.useMemo(() => {
+    if (!watchedCategories) return null;
+    let max = 0, result = null;
+    for (const [cat, count] of Object.entries(watchedCategories)) {
+      if (count > max) {
+        max = count;
+        result = cat;
+      }
+    }
+    return result;
+  }, [watchedCategories]);
+
+  const hasGenre = (movie, genre) =>
+    Array.isArray(movie.Genre) &&
+    movie.Genre.some((g) => g.name === genre);
+
+  // Filter movies for "Action" genre
+  const actionMovies = Array.isArray(movies)
+    ? movies.filter((m) => hasGenre(m, "Action"))
+    : [];
+
+  // const safeMovies = Array.isArray(movies) ? movies : [];
+
+const safeMovies = Array.isArray(movies)&& movie
+  ? movies.filter((m) => m._id !== movie._id) // filter out current movie
+  : [];
+
+  // Prioritize movies from most-watched category for "More Like This"
+  const prioritizedMovies = mostWatchedCategory
+    ? [
+        ...safeMovies.filter((m) => hasGenre(m, mostWatchedCategory)),
+        ...safeMovies.filter((m) => !hasGenre(m, mostWatchedCategory)),
+      ]
+    : safeMovies;
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -162,14 +220,6 @@ export default function MovieDetailPage() {
     });
     setAlertOpen(true);
   };
-
-  const hasGenre = (movie, genre) =>
-    Array.isArray(movie.Genre) &&
-    movie.Genre.some((g) => g.name === genre);
-
-  const safeMovies = Array.isArray(movies) ? movies : [];
-  // const actionMovies = safeMovies.filter((m) => m.Genre?.includes("Action"));
-  const actionMovies = safeMovies.filter((movie) => hasGenre(movie, "Action"));
 
   if (loading) return <NetflixLoader />;
   if (!movie) {
@@ -356,8 +406,12 @@ export default function MovieDetailPage() {
       </div>
 
       <div className="max-w-7xl mx-auto w-full px-4">
-        <h2 className="text-2xl font-bold mb-4">More Like This</h2>
-        <MovieCarousel movies={movies} visibleCount={5} cardWidth={340} />
+        <h2 className="text-2xl font-bold mb-4">
+          {mostWatchedCategory
+            ? `More ${mostWatchedCategory} Movies`
+            : "More Like This"}
+        </h2>
+        <MovieCarousel movies={prioritizedMovies} visibleCount={5} cardWidth={340} />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular on Netflix</h2>

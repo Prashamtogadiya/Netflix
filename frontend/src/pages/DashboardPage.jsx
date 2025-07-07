@@ -23,10 +23,33 @@ export default function DashboardPage() {
   const [startIdx, setStartIdx] = useState(0);
   const [heroIdx, setHeroIdx] = useState(0);
   const [loading, setLoading] = useState(true);
-
+  const [watchedCategories, setWatchedCategories] = useState({});
   const VISIBLE_COUNT = 6;
   const SHIFT_BY = 3;
   const CARD_WIDTH = 320;
+
+  useEffect(() => {
+    if (!profile) return;
+    api.post("/profiles/watched", { profileId: profile._id })
+      .then((res) => {
+        setWatchedCategories(res.data.watchedCategories || {});
+      })
+      .catch((err) => {
+        console.error("Failed to fetch watched categories:", err);
+      });
+  }, [profile]);
+
+  const mostWatchedCategory = React.useMemo(() => {
+    if (!watchedCategories) return null;
+    let max = 0, result = null;
+    for (const [cat, count] of Object.entries(watchedCategories)) {
+      if (count > max) {
+        max = count;
+        result = cat;
+      }
+    }
+    return result;
+  }, [watchedCategories]);
 
   // Fetch movies on mount
   useEffect(() => {
@@ -64,6 +87,39 @@ export default function DashboardPage() {
   };
 
   const safeMovies = Array.isArray(movies) ? movies : [];
+  // Prioritize movies from most-watched category
+  const prioritizedMovies = mostWatchedCategory
+    ? [
+        ...safeMovies.filter(
+          (movie) =>
+            Array.isArray(movie.Genre) &&
+            movie.Genre.some(
+              (g) =>
+                (typeof g === "object" && g !== null && g.name
+                  ? g.name
+                  : typeof g === "string"
+                  ? g
+                  : ""
+                ) === mostWatchedCategory
+            )
+        ),
+        ...safeMovies.filter(
+          (movie) =>
+            !(
+              Array.isArray(movie.Genre) &&
+              movie.Genre.some(
+                (g) =>
+                  (typeof g === "object" && g !== null && g.name
+                    ? g.name
+                    : typeof g === "string"
+                    ? g
+                    : ""
+                  ) === mostWatchedCategory
+              )
+            )
+        ),
+      ]
+    : safeMovies;
 
   // Helper to check genre match (handles both string and object)
   const hasGenre = (movie, genre) =>
@@ -113,6 +169,23 @@ export default function DashboardPage() {
           onNext={handleHeroNext}
         />
       )}
+
+     <section className="px-8 mt-8">
+  <h2 className="text-2xl font-bold mb-4">
+    {mostWatchedCategory
+      ? `Recommended: ${mostWatchedCategory} Movies`
+      : "Popular on Netflix"}
+  </h2>
+  <MovieCarousel
+    movies={prioritizedMovies}
+    visibleCount={VISIBLE_COUNT}
+    cardWidth={CARD_WIDTH}
+    startIdx={startIdx}
+    onPrev={handlePrev}
+    onNext={handleNext}
+    maxStartIdx={maxStartIdx}
+  />
+</section>
 
       {/* Horizontal Carousel */}
       <section className="px-8 mt-8">

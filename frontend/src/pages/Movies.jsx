@@ -12,6 +12,7 @@ import Footer from "../components/Footer";
 export default function Movies() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [watchedCategories, setWatchedCategories] = useState({});
   const profile = useSelector((state) => state.profiles.selectedProfile);
   const profileURL = useSelector(
     (state) => state.profiles.selectedProfile.avatar
@@ -38,6 +39,16 @@ export default function Movies() {
         }, remainingTime);
       });
   }, []);
+
+  // Fetch watched categories for the current profile
+  useEffect(() => {
+    if (!profile) return;
+    api.post("/profiles/watched", { profileId: profile._id })
+      .then((res) => {
+        setWatchedCategories(res.data.watchedCategories || {});
+      })
+      .catch(() => {});
+  }, [profile]);
 
   const handleLogout = async () => {
     await api.post("/auth/logout");
@@ -66,6 +77,27 @@ export default function Movies() {
   const comedyMovies = movies.filter((movie) => hasGenre(movie, "Comedy"));
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
+
+  const mostWatchedCategory = React.useMemo(() => {
+    if (!watchedCategories) return null;
+    let max = 0, result = null;
+    for (const [cat, count] of Object.entries(watchedCategories)) {
+      if (count > max) {
+        max = count;
+        result = cat;
+      }
+    }
+    return result;
+  }, [watchedCategories]);
+
+  // Prioritize movies from most-watched category
+  const prioritizedMovies = mostWatchedCategory
+    ? [
+        ...movies.filter((movie) => hasGenre(movie, mostWatchedCategory)),
+        ...movies.filter((movie) => !hasGenre(movie, mostWatchedCategory)),
+      ]
+    : movies;
+
   if (loading) return <NetflixLoader />;
 
   return (
@@ -77,8 +109,12 @@ export default function Movies() {
       />
       <div className="pt-22 max-w-7xl mx-auto w-full px-4 flex-1">
         <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">All Movies</h2>
-          <MovieCarousel movies={movies} category="All" />
+          <h2 className="text-2xl font-bold mb-4">
+            {mostWatchedCategory
+              ? `Recommended: ${mostWatchedCategory} Movies`
+              : "All Movies"}
+          </h2>
+          <MovieCarousel movies={prioritizedMovies} category={mostWatchedCategory || "All"} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Most Rated Movies</h2>
