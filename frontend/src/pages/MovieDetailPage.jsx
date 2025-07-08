@@ -139,40 +139,75 @@ export default function MovieDetailPage() {
       .catch(() => {});
   }, [profile]);
 
-  const mostWatchedCategory = React.useMemo(() => {
-    if (!watchedCategories) return null;
-    let max = 0, result = null;
-    for (const [cat, count] of Object.entries(watchedCategories)) {
-      if (count > max) {
-        max = count;
-        result = cat;
-      }
-    }
-    return result;
-  }, [watchedCategories]);
-
+  // Helper to check genre match (handles both string and object)
   const hasGenre = (movie, genre) =>
     Array.isArray(movie.Genre) &&
-    movie.Genre.some((g) => g.name === genre);
+    movie.Genre.some(
+      (g) =>
+        (typeof g === "object" && g !== null && g.name
+          ? g.name
+          : typeof g === "string"
+          ? g
+          : ""
+        ) === genre
+    );
 
   // Filter movies for "Action" genre
   const actionMovies = Array.isArray(movies)
     ? movies.filter((m) => hasGenre(m, "Action"))
     : [];
 
-  // const safeMovies = Array.isArray(movies) ? movies : [];
+  // Exclude current movie from recommendations
+  const safeMovies = React.useMemo(() => {
+    return Array.isArray(movies) && movie
+      ? movies.filter((m) => m._id !== movie._id)
+      : [];
+  }, [movies, movie]);
 
-const safeMovies = Array.isArray(movies)&& movie
-  ? movies.filter((m) => m._id !== movie._id) // filter out current movie
-  : [];
+  // Sort watched categories by count descending
+  const sortedWatchedCategories = React.useMemo(() => {
+    if (!watchedCategories) return [];
+    return Object.entries(watchedCategories)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat]) => cat);
+  }, [watchedCategories]);
 
-  // Prioritize movies from most-watched category for "More Like This"
-  const prioritizedMovies = mostWatchedCategory
-    ? [
-        ...safeMovies.filter((m) => hasGenre(m, mostWatchedCategory)),
-        ...safeMovies.filter((m) => !hasGenre(m, mostWatchedCategory)),
-      ]
-    : safeMovies;
+  // The most watched category is the first in the sorted list
+  const mostWatchedCategory = sortedWatchedCategories[0] || null;
+
+  // Movies prioritized by watched categories order
+  const prioritizedMovies = React.useMemo(() => {
+    if (!sortedWatchedCategories.length) return safeMovies;
+    const seen = new Set();
+    const prioritized = [];
+    sortedWatchedCategories.forEach((cat) => {
+      safeMovies.forEach((m) => {
+        if (
+          Array.isArray(m.Genre) &&
+          m.Genre.some(
+            (g) =>
+              (typeof g === "object" && g !== null && g.name
+                ? g.name
+                : typeof g === "string"
+                ? g
+                : ""
+              ) === cat
+          ) &&
+          !seen.has(m._id)
+        ) {
+          prioritized.push(m);
+          seen.add(m._id);
+        }
+      });
+    });
+    safeMovies.forEach((m) => {
+      if (!seen.has(m._id)) {
+        prioritized.push(m);
+        seen.add(m._id);
+      }
+    });
+    return prioritized;
+  }, [safeMovies, sortedWatchedCategories]);
 
   const handleLogout = async () => {
     await api.post("/auth/logout");

@@ -1,8 +1,8 @@
 // Import Profile and User models for database operations
-const Profile = require('../models/Profile.js');
-const User = require('../models/User.js');
+const Profile = require("../models/Profile.js");
+const User = require("../models/User.js");
 // FIX: Only import Movie, not destructure
-const Movie = require('../models/Movie.js').Movie;
+const Movie = require("../models/Movie.js").Movie;
 
 // Create a new profile for the logged-in user
 exports.createProfile = async (req, res) => {
@@ -25,7 +25,9 @@ exports.createProfile = async (req, res) => {
     res.status(201).json(profile);
   } catch (err) {
     // Handle errors
-    res.status(500).json({ message: 'Failed to create profile', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create profile", error: err.message });
   }
 };
 
@@ -40,7 +42,9 @@ exports.getProfiles = async (req, res) => {
     res.json(profiles);
   } catch (err) {
     // Handle errors
-    res.status(500).json({ message: 'Failed to fetch profiles', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch profiles", error: err.message });
   }
 };
 
@@ -58,12 +62,14 @@ exports.updateProfile = async (req, res) => {
       { new: true }
     );
     // If profile not found, return 404
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
     // Respond with updated profile
     res.json(profile);
   } catch (err) {
     // Handle errors
-    res.status(500).json({ message: 'Failed to update profile', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update profile", error: err.message });
   }
 };
 
@@ -75,22 +81,20 @@ exports.deleteProfile = async (req, res) => {
     const userId = req.user.userId;
     // Find and delete the profile if it belongs to the user
     const profile = await Profile.findOneAndDelete({ _id: id, userId });
-    if (!profile) return res.status(404).json({ message: 'Profile not found' });
+    if (!profile) return res.status(404).json({ message: "Profile not found" });
 
     // Remove the profile's ID from the user's profiles array
-    await User.findByIdAndUpdate(
-      userId,
-      { $pull: { profiles: id } }
-    );
+    await User.findByIdAndUpdate(userId, { $pull: { profiles: id } });
 
     // Respond with success message
-    res.json({ message: 'Profile deleted' });
+    res.json({ message: "Profile deleted" });
   } catch (err) {
     // Handle errors
-    res.status(500).json({ message: 'Failed to delete profile', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to delete profile", error: err.message });
   }
 };
-
 
 // Add a movie to a profile's myList
 exports.addMovieToMyList = async (req, res) => {
@@ -100,7 +104,10 @@ exports.addMovieToMyList = async (req, res) => {
 
     // Ensure the profile belongs to the logged-in user
     const profile = await Profile.findOne({ _id: profileId, userId });
-    if (!profile) return res.status(404).json({ message: 'Profile not found or unauthorized' });
+    if (!profile)
+      return res
+        .status(404)
+        .json({ message: "Profile not found or unauthorized" });
 
     // Add movieId to myList if not already present
     if (!profile.myList.includes(movieId)) {
@@ -108,9 +115,11 @@ exports.addMovieToMyList = async (req, res) => {
       await profile.save();
     }
 
-    res.json({ message: 'Movie added to My List', myList: profile.myList });
+    res.json({ message: "Movie added to My List", myList: profile.myList });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to add movie to My List', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to add movie to My List", error: err.message });
   }
 };
 
@@ -122,15 +131,21 @@ exports.removeMovieFromMyList = async (req, res) => {
 
     // Ensure the profile belongs to the logged-in user
     const profile = await Profile.findOne({ _id: profileId, userId });
-    if (!profile) return res.status(404).json({ message: 'Profile not found or unauthorized' });
+    if (!profile)
+      return res
+        .status(404)
+        .json({ message: "Profile not found or unauthorized" });
 
     // Remove movieId from myList
-    profile.myList = profile.myList.filter(id => id.toString() !== movieId);
+    profile.myList = profile.myList.filter((id) => id.toString() !== movieId);
     await profile.save();
 
-    res.json({ message: 'Movie removed from My List', myList: profile.myList });
+    res.json({ message: "Movie removed from My List", myList: profile.myList });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to remove movie from My List', error: err.message });
+    res.status(500).json({
+      message: "Failed to remove movie from My List",
+      error: err.message,
+    });
   }
 };
 
@@ -141,15 +156,21 @@ exports.getMyList = async (req, res) => {
     const userId = req.user.userId;
 
     // Ensure the profile belongs to the logged-in user
-    const profile = await Profile.findOne({ _id: profileId, userId }).populate('myList');
-    if (!profile) return res.status(404).json({ message: 'Profile not found or unauthorized' });
+    const profile = await Profile.findOne({ _id: profileId, userId }).populate(
+      "myList"
+    );
+    if (!profile)
+      return res
+        .status(404)
+        .json({ message: "Profile not found or unauthorized" });
 
     res.json({ myList: profile.myList });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch My List', error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch My List", error: err.message });
   }
 };
-
 
 // Update the watched categories map for a profile
 exports.updateWatchedCategories = async (req, res) => {
@@ -160,82 +181,76 @@ exports.updateWatchedCategories = async (req, res) => {
     if (!profileId || !movieId) {
       // If missing, send a 400 error
       console.error("Missing profileId or movieId", { profileId, movieId });
-      return res.status(400).json({ message: 'profileId and movieId are required' });
+      return res
+        .status(400)
+        .json({ message: "profileId and movieId are required" });
     }
     // Find the profile by its ID
     const profile = await Profile.findById(profileId);
     // Find the movie by its ID and get its Genre field
-    const movie = await Movie.findById(movieId).populate('Genre', 'name');
+    const movie = await Movie.findById(movieId).populate("Genre", "name");
     // If either profile or movie is not found, return 404
     if (!profile || !movie) {
       console.error("Profile or movie not found", { profile, movie });
-      return res.status(404).json({ message: 'Profile or movie not found' });
+      return res.status(404).json({ message: "Profile or movie not found" });
     }
     // Make sure watchedCategories exists and is an object
-    if (!profile.watchedCategories || typeof profile.watchedCategories !== 'object') {
+    if (
+      !profile.watchedCategories ||
+      typeof profile.watchedCategories !== "object"
+    ) {
       profile.watchedCategories = {};
     }
     // This flag checks if we actually update anything
     let updated = false;
     // If the movie has multiple genres (array), handle each one
-    if (Array.isArray(movie.Genre)) {
       movie.Genre.forEach((genre) => {
-        let name = "";
-        // If genre is an object, get its name
-        if (typeof genre === "object" && genre !== null) {
-          name = genre.name || genre.toString();
-        } else if (typeof genre === "string") {
-          name = genre;
+        if (genre && genre.name) {
+          const name = genre.name;
+          profile.watchedCategories[name] =
+            (profile.watchedCategories[name] || 0) + 1;
+          updated = true;
         }
-        if (!name) return;
-        // Increase the count for this genre in watchedCategories
-        profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
-        updated = true;
       });
-    } else if (movie.Genre) {
-      // If there's only one genre, handle it here
-      let name = "";
-      if (typeof movie.Genre === "object" && movie.Genre !== null) {
-        name = movie.Genre.name || movie.Genre.toString();
-      } else if (typeof movie.Genre === "string") {
-        name = movie.Genre;
-      }
-      if (name) {
-        // Increase the count for this genre
-        profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
-        updated = true;
-      }
-    }
+    
     // If we updated watchedCategories, save the profile
     if (updated) {
-      profile.markModified('watchedCategories');
+      profile.markModified("watchedCategories");
       await profile.save();
     }
     // Send back the updated watchedCategories
-    res.json({ message: 'Watched categories updated', watchedCategories: profile.watchedCategories });
+    res.json({
+      message: "Watched categories updated",
+      watchedCategories: profile.watchedCategories,
+    });
   } catch (err) {
     // Log and send error if something goes wrong
     console.error("updateWatchedCategories error:", err);
-    res.status(500).json({ message: 'Failed to update watched categories', error: err.message });
+    res.status(500).json({
+      message: "Failed to update watched categories",
+      error: err.message,
+    });
   }
-}
-
+};
 
 // Get watched Categories for a profile
 exports.getWatchedCategories = async (req, res) => {
   // Get profileId from the request body
-  const { profileId} = req.body;
-  try{
+  const { profileId } = req.body;
+  try {
     // Find the profile by its ID
     const profile = await Profile.findById(profileId);
     // If profile is not found, return 404
     if (!profile) {
-      return res.status(404).json({ message: 'Profile not found' });
-    } 
+      return res.status(404).json({ message: "Profile not found" });
+    }
     // Send back the watchedCategories object
-    res.json({watchedCategories: profile.watchedCategories});
-  }catch (err) {
+    res.json({ watchedCategories: profile.watchedCategories });
+  } catch (err) {
     // Send error if something goes wrong
-    res.status(500).json({ message: 'Failed to fetch watched categories', error: err.message });
+    res.status(500).json({
+      message: "Failed to fetch watched categories",
+      error: err.message,
+    });
   }
-}
+};

@@ -78,25 +78,50 @@ export default function Movies() {
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
 
-  const mostWatchedCategory = React.useMemo(() => {
-    if (!watchedCategories) return null;
-    let max = 0, result = null;
-    for (const [cat, count] of Object.entries(watchedCategories)) {
-      if (count > max) {
-        max = count;
-        result = cat;
-      }
-    }
-    return result;
+  // Sorted watched categories by count descending
+  const sortedWatchedCategories = React.useMemo(() => {
+    if (!watchedCategories) return [];
+    return Object.entries(watchedCategories)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat]) => cat);
   }, [watchedCategories]);
 
-  // Prioritize movies from most-watched category
-  const prioritizedMovies = mostWatchedCategory
-    ? [
-        ...movies.filter((movie) => hasGenre(movie, mostWatchedCategory)),
-        ...movies.filter((movie) => !hasGenre(movie, mostWatchedCategory)),
-      ]
-    : movies;
+  // The most watched category is the first in the sorted list
+  const mostWatchedCategory = sortedWatchedCategories[0] || null;
+
+  // Movies prioritized by watched categories order
+  const prioritizedMovies = React.useMemo(() => {
+    if (!sortedWatchedCategories.length) return movies;
+    const seen = new Set();
+    const prioritized = [];
+    sortedWatchedCategories.forEach((cat) => {
+      movies.forEach((m) => {
+        if (
+          Array.isArray(m.Genre) &&
+          m.Genre.some(
+            (g) =>
+              (typeof g === "object" && g !== null && g.name
+                ? g.name
+                : typeof g === "string"
+                ? g
+                : ""
+              ) === cat
+          ) &&
+          !seen.has(m._id)
+        ) {
+          prioritized.push(m);
+          seen.add(m._id);
+        }
+      });
+    });
+    movies.forEach((m) => {
+      if (!seen.has(m._id)) {
+        prioritized.push(m);
+        seen.add(m._id);
+      }
+    });
+    return prioritized;
+  }, [movies, sortedWatchedCategories]);
 
   if (loading) return <NetflixLoader />;
 

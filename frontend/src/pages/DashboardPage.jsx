@@ -28,6 +28,9 @@ export default function DashboardPage() {
   const SHIFT_BY = 3;
   const CARD_WIDTH = 320;
 
+  // Define safeMovies FIRST so it can be used in hooks below
+  const safeMovies = React.useMemo(() => (Array.isArray(movies) ? movies : []), [movies]);
+
   useEffect(() => {
     if (!profile) return;
     api.post("/profiles/watched", { profileId: profile._id })
@@ -39,17 +42,52 @@ export default function DashboardPage() {
       });
   }, [profile]);
 
-  const mostWatchedCategory = React.useMemo(() => {
-    if (!watchedCategories) return null;
-    let max = 0, result = null;
-    for (const [cat, count] of Object.entries(watchedCategories)) {
-      if (count > max) {
-        max = count;
-        result = cat;
-      }
-    }
-    return result;
+  // Sort watched categories by count descending
+  const sortedWatchedCategories = React.useMemo(() => {
+    if (!watchedCategories) return [];
+    return Object.entries(watchedCategories)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat]) => cat);
   }, [watchedCategories]);
+
+  // The most watched category is the first in the sorted list
+  const mostWatchedCategory = sortedWatchedCategories[0] || null;
+
+  // Movies prioritized by watched categories order
+  const prioritizedMovies = React.useMemo(() => {
+    if (!sortedWatchedCategories.length) return safeMovies;
+    const seen = new Set();
+    const prioritized = [];
+    // Add movies for each watched category in order
+    sortedWatchedCategories.forEach((cat) => {
+      safeMovies.forEach((movie) => {
+        if (
+          Array.isArray(movie.Genre) &&
+          movie.Genre.some(
+            (g) =>
+              (typeof g === "object" && g !== null && g.name
+                ? g.name
+                : typeof g === "string"
+                ? g
+                : ""
+              ) === cat
+          ) &&
+          !seen.has(movie._id)
+        ) {
+          prioritized.push(movie);
+          seen.add(movie._id);
+        }
+      });
+    });
+    // Add remaining movies
+    safeMovies.forEach((movie) => {
+      if (!seen.has(movie._id)) {
+        prioritized.push(movie);
+        seen.add(movie._id);
+      }
+    });
+    return prioritized;
+  }, [safeMovies, sortedWatchedCategories]);
 
   // Fetch movies on mount
   useEffect(() => {
@@ -86,41 +124,6 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
-  const safeMovies = Array.isArray(movies) ? movies : [];
-  // Prioritize movies from most-watched category
-  const prioritizedMovies = mostWatchedCategory
-    ? [
-        ...safeMovies.filter(
-          (movie) =>
-            Array.isArray(movie.Genre) &&
-            movie.Genre.some(
-              (g) =>
-                (typeof g === "object" && g !== null && g.name
-                  ? g.name
-                  : typeof g === "string"
-                  ? g
-                  : ""
-                ) === mostWatchedCategory
-            )
-        ),
-        ...safeMovies.filter(
-          (movie) =>
-            !(
-              Array.isArray(movie.Genre) &&
-              movie.Genre.some(
-                (g) =>
-                  (typeof g === "object" && g !== null && g.name
-                    ? g.name
-                    : typeof g === "string"
-                    ? g
-                    : ""
-                  ) === mostWatchedCategory
-              )
-            )
-        ),
-      ]
-    : safeMovies;
-
   // Helper to check genre match (handles both string and object)
   const hasGenre = (movie, genre) =>
   Array.isArray(movie.Genre) &&
@@ -133,11 +136,6 @@ export default function DashboardPage() {
   );
   const crimeMovies = safeMovies.filter((movie) => hasGenre(movie, "Crime"));
   const comedyMovies = safeMovies.filter((movie) => hasGenre(movie, "Comedy"));
-  // const mostSearchedMovies = safeMovies
-  //   .filter((movie) => movie.Searches)
-  //   .sort((a, b) => b.Searches - a.Searches)
-  //   .slice(0, 10);
-
   if (!profile) return null;
   if (loading) return <NetflixLoader />;
 
@@ -244,3 +242,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
