@@ -153,37 +153,47 @@ exports.getMyList = async (req, res) => {
 
 // Update the watched categories map for a profile
 exports.updateWatchedCategories = async (req, res) => {
+  // Get profileId and movieId from the request body
   const { profileId, movieId } = req.body;
   try {
+    // Check if both profileId and movieId are provided
     if (!profileId || !movieId) {
+      // If missing, send a 400 error
       console.error("Missing profileId or movieId", { profileId, movieId });
       return res.status(400).json({ message: 'profileId and movieId are required' });
     }
+    // Find the profile by its ID
     const profile = await Profile.findById(profileId);
+    // Find the movie by its ID and get its Genre field
     const movie = await Movie.findById(movieId).populate('Genre', 'name');
+    // If either profile or movie is not found, return 404
     if (!profile || !movie) {
       console.error("Profile or movie not found", { profile, movie });
       return res.status(404).json({ message: 'Profile or movie not found' });
     }
-    // Ensure watchedCategories is an object
+    // Make sure watchedCategories exists and is an object
     if (!profile.watchedCategories || typeof profile.watchedCategories !== 'object') {
       profile.watchedCategories = {};
     }
-    // Defensive: handle Genre as array of objects, strings, or ObjectIds
+    // This flag checks if we actually update anything
     let updated = false;
+    // If the movie has multiple genres (array), handle each one
     if (Array.isArray(movie.Genre)) {
       movie.Genre.forEach((genre) => {
         let name = "";
+        // If genre is an object, get its name
         if (typeof genre === "object" && genre !== null) {
           name = genre.name || genre.toString();
         } else if (typeof genre === "string") {
           name = genre;
         }
         if (!name) return;
+        // Increase the count for this genre in watchedCategories
         profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
         updated = true;
       });
     } else if (movie.Genre) {
+      // If there's only one genre, handle it here
       let name = "";
       if (typeof movie.Genre === "object" && movie.Genre !== null) {
         name = movie.Genre.name || movie.Genre.toString();
@@ -191,30 +201,41 @@ exports.updateWatchedCategories = async (req, res) => {
         name = movie.Genre;
       }
       if (name) {
+        // Increase the count for this genre
         profile.watchedCategories[name] = (profile.watchedCategories[name] || 0) + 1;
         updated = true;
       }
     }
+    // If we updated watchedCategories, save the profile
     if (updated) {
       profile.markModified('watchedCategories');
       await profile.save();
     }
+    // Send back the updated watchedCategories
     res.json({ message: 'Watched categories updated', watchedCategories: profile.watchedCategories });
   } catch (err) {
-    console.error("updateWatchedCategories error:", err); // <-- Add this for debugging
+    // Log and send error if something goes wrong
+    console.error("updateWatchedCategories error:", err);
     res.status(500).json({ message: 'Failed to update watched categories', error: err.message });
   }
 }
 
+
+// Get watched Categories for a profile
 exports.getWatchedCategories = async (req, res) => {
+  // Get profileId from the request body
   const { profileId} = req.body;
   try{
+    // Find the profile by its ID
     const profile = await Profile.findById(profileId);
+    // If profile is not found, return 404
     if (!profile) {
       return res.status(404).json({ message: 'Profile not found' });
     } 
+    // Send back the watchedCategories object
     res.json({watchedCategories: profile.watchedCategories});
   }catch (err) {
+    // Send error if something goes wrong
     res.status(500).json({ message: 'Failed to fetch watched categories', error: err.message });
   }
 }
