@@ -21,9 +21,12 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [movies, setMovies] = useState([]);
   const [startIdx, setStartIdx] = useState(0);
-  const [heroIdx, setHeroIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [watchedCategories, setWatchedCategories] = useState({});
+  const [heroMode, setHeroMode] = useState(
+    localStorage.getItem("heroCarouselMode") || "mostRated"
+  );
+  const [heroCarouselMovies, setHeroCarouselMovies] = useState([]);
   const VISIBLE_COUNT = 6;
   const SHIFT_BY = 3;
   const CARD_WIDTH = 320;
@@ -42,7 +45,16 @@ export default function DashboardPage() {
       });
   }, [profile]);
 
-  // Sort watched categories by count descending
+  // Listen for admin setting changes
+  useEffect(() => {
+    const handler = () => {
+      setHeroMode(localStorage.getItem("heroCarouselMode") || "mostRated");
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, []);
+
+  // Sorted watched categories by count descending
   const sortedWatchedCategories = React.useMemo(() => {
     if (!watchedCategories) return [];
     return Object.entries(watchedCategories)
@@ -50,7 +62,69 @@ export default function DashboardPage() {
       .map(([cat]) => cat);
   }, [watchedCategories]);
 
-  // The most watched category is the first in the sorted list
+  // Helper to check genre match (handles both string and object)
+  const hasGenre = (movie, genre) =>
+    Array.isArray(movie.Genre) &&
+    movie.Genre.some(
+      (g) =>
+        (typeof g === "object" && g !== null && g.name
+          ? g.name
+          : typeof g === "string"
+          ? g
+          : ""
+        ) === genre
+    );
+
+  // Compute hero carousel movies based on mode
+  useEffect(() => {
+    if (loading || !safeMovies.length) return;
+    if (heroMode === "mostRated") {
+      const sorted = [...safeMovies].sort((a, b) => b.Rating - a.Rating);
+      setHeroCarouselMovies(sorted.slice(0, 6));
+    } else if (heroMode === "mostWatchedCategories") {
+      // Take top 6 genres by count
+      const topGenres = Object.entries(watchedCategories)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([genre]) => genre);
+      const selected = [];
+      const seen = new Set();
+      topGenres.forEach((genre) => {
+        // Find highest-rated movie in this genre (not already picked)
+        const moviesInGenre = safeMovies
+          .filter(
+            (m) =>
+              Array.isArray(m.Genre) &&
+              m.Genre.some(
+                (g) =>
+                  (typeof g === "object" && g !== null && g.name
+                    ? g.name
+                    : typeof g === "string"
+                    ? g
+                    : ""
+                  ) === genre
+              )
+          )
+          .sort((a, b) => b.Rating - a.Rating);
+        for (const m of moviesInGenre) {
+          if (!seen.has(m._id)) {
+            selected.push(m);
+            seen.add(m._id);
+            break;
+          }
+        }
+      });
+      // Fallback: If no movies found, show top 6 most rated
+      if (selected.length === 0) {
+        const sorted = [...safeMovies].sort((a, b) => b.Rating - a.Rating);
+        setHeroCarouselMovies(sorted.slice(0, 6));
+      } else {
+        setHeroCarouselMovies(selected);
+      }
+    }
+  }, [heroMode, safeMovies, watchedCategories, loading]);
+
+  // Sort watched categories by count descending
   const mostWatchedCategory = sortedWatchedCategories[0] || null;
 
   // Movies prioritized by watched categories order
@@ -124,11 +198,6 @@ export default function DashboardPage() {
     navigate("/login");
   };
 
-  // Helper to check genre match (handles both string and object)
-  const hasGenre = (movie, genre) =>
-  Array.isArray(movie.Genre) &&
-  movie.Genre.some(g => g.name === genre);
-
   const actionMovies = safeMovies.filter((movie) => hasGenre(movie, "Action"));
   const dramaMovies = safeMovies.filter((movie) => hasGenre(movie, "Drama"));
   const adventureMovies = safeMovies.filter(
@@ -145,12 +214,6 @@ export default function DashboardPage() {
   const handleNext = () =>
     setStartIdx((prev) => Math.min(prev + SHIFT_BY, maxStartIdx));
 
-  // For hero carousel
-  const handleHeroPrev = () =>
-    setHeroIdx((prev) => (prev === 0 ? safeMovies.length - 1 : prev - 1));
-  const handleHeroNext = () =>
-    setHeroIdx((prev) => (prev === safeMovies.length - 1 ? 0 : prev + 1));
-
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <Navbar
@@ -160,12 +223,12 @@ export default function DashboardPage() {
       />
 
       {/* Hero Carousel */}
-      {safeMovies.length > 0 && (
-        <HeroCarousel
-          movie={safeMovies[heroIdx]}
-          onPrev={handleHeroPrev}
-          onNext={handleHeroNext}
-        />
+      {heroCarouselMovies.length > 0 && (
+        <HeroCarousel movies={heroCarouselMovies} />
+      )}
+      {/* Always show HeroCarousel if there are movies, fallback to top 6 most rated */}
+      {heroCarouselMovies.length === 0 && safeMovies.length > 0 && (
+        <HeroCarousel movies={[...safeMovies].sort((a, b) => b.Rating - a.Rating).slice(0, 6)} />
       )}
 
      <section className="px-8 mt-8">

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 // import { useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import {  useDispatch } from "react-redux";
@@ -7,34 +7,26 @@ import api from "../api";
 import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 import { useNavigate } from "react-router-dom";
-export default function AdminNavbar() {
-  const [dropdown, setDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-    const dispatch = useDispatch();
-  
+export default function AdminNavbar({ onHeroModeChange }) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [heroMode, setHeroMode] = useState(
+    localStorage.getItem("heroCarouselMode") || "mostRated"
+  );
   const navigate = useNavigate();
-  //   const location = useLocation();
+  const dispatch = useDispatch();
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setDropdown(false);
-      }
-    }
-    if (dropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dropdown]);
+    if (onHeroModeChange) onHeroModeChange(heroMode);
+  }, [heroMode, onHeroModeChange]);
 
-  // const handleLogout = async () => {
-  //   await api.post("/auth/logout");
+  const handleHeroModeChange = (mode) => {
+    setHeroMode(mode);
+    localStorage.setItem("heroCarouselMode", mode);
+    setSettingsOpen(false);
+    // Optionally, trigger a storage event for other tabs
+    window.dispatchEvent(new Event("storage"));
+  };
 
-  //   localStorage.removeItem("user");
-  //   localStorage.removeItem("selectedProfile");
-  //   navigate("/login");
-  // };
   const handleLogout = async () => {
     await api.post("/auth/logout");
     dispatch(clearUser());
@@ -64,6 +56,45 @@ export default function AdminNavbar() {
         <div>
           <SearchBar />
         </div>
+        {/* Settings dropdown */}
+        <div className="relative">
+          <button
+            className="px-4 py-2 text-white bg-gray-800 rounded hover:bg-gray-700 transition"
+            type="button"
+            onClick={() => setSettingsOpen((open) => !open)}
+          >
+            Settings
+          </button>
+          {settingsOpen && (
+            <div
+              className="absolute right-0 mt-2 w-64 bg-gray-900 rounded shadow-lg border border-gray-800 z-40 p-4 transition-all duration-150"
+              onMouseLeave={() => setSettingsOpen(false)}
+            >
+              <div className="flex flex-col gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="heroMode"
+                    checked={heroMode === "mostRated"}
+                    onChange={() => handleHeroModeChange("mostRated")}
+                  />
+                  <span className="text-white">Most Rated (Top 6)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="heroMode"
+                    checked={heroMode === "mostWatchedCategories"}
+                    onChange={() => handleHeroModeChange("mostWatchedCategories")}
+                  />
+                  <span className="text-white">
+                    Profile's Most Watched Genres (Top 6, 1 per genre)
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
         {/* Profile avatar with dropdown */}
         <button
           onClick={() => {
@@ -77,3 +108,4 @@ export default function AdminNavbar() {
     </nav>
   );
 }
+ 

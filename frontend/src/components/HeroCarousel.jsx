@@ -1,15 +1,29 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-export default function HeroCarousel({ movie, onPrev, onNext }) {
+export default function HeroCarousel({ movies = [] }) {
+  const [index, setIndex] = useState(0);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setIndex(0);
+  }, [movies]);
 
   // Auto-advance to next movie every 6 seconds
   useEffect(() => {
+    if (!movies.length) return;
     const timer = setTimeout(() => {
-      onNext && onNext();
+      setIndex((prev) => (prev + 1) % movies.length);
     }, 6000);
     return () => clearTimeout(timer);
-  }, [movie, onNext]);
+  }, [index, movies]);
+
+  if (!movies.length) return null;
+  const movie = movies[index];
+
+  const handlePrev = () =>
+    setIndex((prev) => (prev - 1 + movies.length) % movies.length);
+  const handleNext = () =>
+    setIndex((prev) => (prev + 1) % movies.length);
 
   return (
     <section className="relative w-full h-[60vw] min-h-[400px] max-h-[729px] flex items-end justify-start overflow-hidden">
@@ -19,12 +33,10 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
         style={{
           backgroundImage: `url(${
             Array.isArray(movie.Image) && movie.Image.length > 0
-                  ? (
-                      movie.Image[0].startsWith("http")
-                        ? movie.Image[0]
-                        : `http://localhost:5000/uploads/${movie.Image[0]}`
-                    )
-                  : "https://placehold.co/220x330?text=No+Image"
+              ? movie.Image[0].startsWith("http")
+                ? movie.Image[0]
+                : `http://localhost:5000/uploads/${movie.Image[0]}`
+              : "https://placehold.co/220x330?text=No+Image"
           })`,
           filter: "brightness(0.5)",
         }}
@@ -116,13 +128,13 @@ export default function HeroCarousel({ movie, onPrev, onNext }) {
       </div>
       {/* Left/Right arrows */}
       <button
-        onClick={onPrev}
+        onClick={handlePrev}
         className="absolute left-4 bottom-1/2 z-20 bg-black/60 hover:bg-black text-white rounded-full p-3 text-2xl transition"
       >
         &#8592;
       </button>
       <button
-        onClick={onNext}
+        onClick={handleNext}
         className="absolute right-4 bottom-1/2 z-20 bg-black/60 hover:bg-black text-white rounded-full p-3 text-2xl transition"
       >
         &#8594;

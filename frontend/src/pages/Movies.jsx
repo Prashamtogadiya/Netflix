@@ -21,7 +21,7 @@ export default function Movies() {
   const navigate = useNavigate();
   useEffect(() => {
     setLoading(true);
-    const MIN_LOADING_TIME = 1000; 
+    const MIN_LOADING_TIME = 1000;
     const startTime = Date.now();
     api
       .get("/movies")
@@ -50,6 +50,18 @@ export default function Movies() {
       .catch(() => {});
   }, [profile]);
 
+  // Listen for changes from AdminNavbar (if used in admin context)
+  // Removed setHeroMode usage as it is not defined and not used elsewhere.
+  // If you need heroCarouselMode, define a state for it and use accordingly.
+
+  // Sorted watched categories by count descending
+  const sortedWatchedCategories = React.useMemo(() => {
+    if (!watchedCategories) return [];
+    return Object.entries(watchedCategories)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat]) => cat);
+  }, [watchedCategories]);
+
   const handleLogout = async () => {
     await api.post("/auth/logout");
     dispatch(clearUser());
@@ -77,14 +89,6 @@ export default function Movies() {
   const comedyMovies = movies.filter((movie) => hasGenre(movie, "Comedy"));
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
-
-  // Sorted watched categories by count descending
-  const sortedWatchedCategories = React.useMemo(() => {
-    if (!watchedCategories) return [];
-    return Object.entries(watchedCategories)
-      .sort((a, b) => b[1] - a[1])
-      .map(([cat]) => cat);
-  }, [watchedCategories]);
 
   // The most watched category is the first in the sorted list
   const mostWatchedCategory = sortedWatchedCategories[0] || null;
