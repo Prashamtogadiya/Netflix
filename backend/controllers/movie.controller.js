@@ -215,3 +215,21 @@ exports.getHeroCarouselMovies = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch hero carousel movies", error: err.message });
   }
 };
+
+
+exports.incrementSearches = async(req,res)=>{
+  try{
+      const {id} = req.body;
+      if(!id) return res.status(400).json({message:"Movie ID is required"});
+      const movie = await Movie.findById(id);
+      if(!movie) return res.status(404).json({message:"Movie not found"});
+      // Increment the Searches field
+      movie.Searches = (movie.Searches || 0) + 1;
+      await movie.save();
+      res.status(200).json({message:"Searches incremented", Searches: movie.Searches});
+      
+  }catch(error){
+    console.error("Failed to increment searches:", err);
+    res.status(500).json({ message: "Failed to increment searches", error: error.message });
+  }
+}

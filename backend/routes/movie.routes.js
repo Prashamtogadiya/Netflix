@@ -14,7 +14,8 @@ const {
   getActors,
   uploadMovieImages,
   uploadActorImages,
-  getHeroCarouselMovies
+  getHeroCarouselMovies,
+  incrementSearches
 } = require('../controllers/movie.controller.js');
 const { authenticate, verifyAdmin } = require('../middlewares/auth.middleware.js');
 const multer = require('multer');
@@ -77,6 +78,8 @@ router.post(
 
 // Hero carousel movies
 router.get('/hero-carousel', getHeroCarouselMovies);
+
+router.post('/increment-searches', authenticate, incrementSearches);
 
 // Export the router to be used in server.js
 module.exports = router;

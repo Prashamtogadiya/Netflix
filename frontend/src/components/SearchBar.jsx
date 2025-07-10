@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import api from "../api"; 
 const SearchBar = () => {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
@@ -27,6 +27,14 @@ const SearchBar = () => {
       setShowDropdown(false);
     }
   };
+
+  const handleSearchCount = async(movieId) => {
+      try{
+        await api.post("/movies/increment-searches", { id: movieId });
+      }catch(error){
+        console.error("Failed to increment search count:", error);
+      }
+  }
 
   return (
     <div className="relative w-full max-w-md transition-all duration-300">
@@ -64,9 +72,10 @@ const SearchBar = () => {
             <div
               key={movie._id}
               className="flex items-center px-4 py-2 hover:bg-[#333] cursor-pointer transition"
-              onMouseDown={() => {
+              onMouseDown={async () => {
                 setShowDropdown(false);
                 setSearch("");
+                await handleSearchCount(movie._id);
                 navigate(`/movies/${movie._id}`, { state: { movie: movie } });
               }}
             >

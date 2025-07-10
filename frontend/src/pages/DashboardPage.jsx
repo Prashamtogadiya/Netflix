@@ -80,6 +80,12 @@ export default function DashboardPage() {
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 6);
     }
+    if(heroMode.toLowerCase()==="most searched"){
+      // Sort by search count 
+      return [...movies]
+        .sort((a, b) => b.Searches  - a.Searches )
+        .slice(0, 6);
+    }
     // Default: Most Rated
     return [...movies].sort((a, b) => b.Rating - a.Rating).slice(0, 6);
   }, [movies, heroMode]);
