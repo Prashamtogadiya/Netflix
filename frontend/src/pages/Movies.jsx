@@ -50,10 +50,6 @@ export default function Movies() {
       .catch(() => {});
   }, [profile]);
 
-  // Listen for changes from AdminNavbar (if used in admin context)
-  // Removed setHeroMode usage as it is not defined and not used elsewhere.
-  // If you need heroCarouselMode, define a state for it and use accordingly.
-
   // Sorted watched categories by count descending
   const sortedWatchedCategories = React.useMemo(() => {
     if (!watchedCategories) return [];

@@ -204,6 +204,26 @@ export default function AdminPanelPage() {
           >
             Add New Actor
           </button>
+          <button
+            className={`text-left px-4 py-3 cursor-pointer rounded mb-2 font-semibold transition ${
+              activeTab === "add-new-mode"
+                ? "bg-red-600 text-white"
+                : "hover:bg-gray-800"
+            }`}
+            onClick={() => setActiveTab("add-new-mode")}
+          >
+            Add New Mode
+          </button>
+          <button
+            className={`text-left px-4 py-3 cursor-pointer rounded mb-2 font-semibold transition ${
+              activeTab === "change-mode"
+                ? "bg-red-600 text-white"
+                : "hover:bg-gray-800"
+            }`}
+            onClick={() => setActiveTab("change-mode")}
+          >
+            Change the Mode
+          </button>
         </aside>
         <main className="flex-1 px-8 py-8 ml-34 mt-2 max-w-5xl mx-auto">
           {activeTab === "dashboard" && (
@@ -357,10 +377,129 @@ export default function AdminPanelPage() {
               </form>
             </div>
           )}
+          {activeTab === "change-mode" && (
+            <div className="max-w-md mx-auto bg-gray-900 rounded-lg shadow-lg p-8">
+              <h3 className="text-2xl font-bold mb-6 text-center">Change Hero Carousel Mode</h3>
+              <ModeSelector />
+            </div>
+          )}
+          {activeTab === "add-new-mode" && (
+            <div className="max-w-md mx-auto bg-gray-900 rounded-lg shadow-lg p-8">
+              <h3 className="text-2xl font-bold mb-6 text-center">Add New Mode</h3>
+              <AddModeForm />
+            </div>
+          )}
         </main>
       </div>
       <Footer />
     </div>
   );
 }
-               
+
+// --- Add this component at the bottom of the file ---
+function ModeSelector() {
+  const [modes, setModes] = useState([]);
+  const [mode, setMode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    api.get("/settings/modes")
+      .then(res => {
+        setModes(res.data.modes || []);
+        return api.get("/settings/hero-mode");
+      })
+      .then(res => {
+        if (res.data && res.data.heroMode) setMode(res.data.heroMode);
+      })
+      .catch(() => {});
+  }, []);
+  const handleSave = async () => {
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    try {
+      // The backend expects /settings/hero-mode for setting the current mode
+      await api.post("/settings/hero-mode", { mode });
+      setSuccess(true);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save mode");
+    }
+    setSaving(false);
+  };
+  return (
+    <form
+      onSubmit={e => {
+        e.preventDefault();
+        handleSave();
+      }}
+      className="flex flex-col gap-6"
+    >
+      <label className="flex flex-col gap-2">
+        <span className="text-white font-semibold mb-2">Select Mode:</span>
+        <select
+          value={mode}
+          onChange={e => setMode(e.target.value)}
+          className="p-3 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
+        >
+          {modes.map(m => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+      </label>
+      <button
+        type="submit"
+        className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded transition"
+        disabled={saving}
+      >
+        {saving ? "Saving..." : "Save Mode"}
+      </button>
+      {success && <div className="text-green-400 text-center">Mode saved!</div>}
+      {error && <div className="text-red-400 text-center">{error}</div>}
+    </form>
+  );
+}
+
+function AddModeForm() {
+  const [mode, setMode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setSuccess(false);
+    try {
+      await api.post("/settings/modes", { mode });
+      setSuccess(true);
+      setMode("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to add mode");
+    }
+    setSaving(false);
+  };
+  return (
+    <form onSubmit={handleSave} className="flex flex-col gap-6">
+      <label className="flex flex-col gap-2">
+        <span className="text-white font-semibold mb-2">New Mode Name:</span>
+        <input
+          value={mode}
+          onChange={e => setMode(e.target.value)}
+          className="p-3 rounded bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-600 transition"
+          placeholder="Enter new mode name"
+          required
+        />
+      </label>
+      <button
+        type="submit"
+        className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded transition"
+        disabled={saving}
+      >
+        {saving ? "Saving..." : "Add Mode"}
+      </button>
+      {success && <div className="text-green-400 text-center">Mode added!</div>}
+      {error && <div className="text-red-400 text-center">{error}</div>}
+    </form>
+  );
+}
