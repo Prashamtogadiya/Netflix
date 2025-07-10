@@ -177,3 +177,41 @@ exports.uploadActorImages = (req, res) => {
   const files = req.files || [];
   res.json({ filenames: files.map(f => f.filename) });
 };
+
+// Get movies for hero carousel based on current hero mode
+exports.getHeroCarouselMovies = async (req, res) => {
+  try {
+    const Setting = require("../models/Setting");
+    // Get current hero mode from settings
+    const modesDoc = await Setting.findOne({ type: "modes" });
+    let heroMode = modesDoc && modesDoc.mode ? modesDoc.mode : null;
+    // fallback: first mode in array
+    if (!heroMode && modesDoc && Array.isArray(modesDoc.modes) && modesDoc.modes.length > 0) {
+      heroMode = modesDoc.modes[0];
+    }
+    let movies = [];
+    if (heroMode && heroMode.toLowerCase() === "most rated") {
+      movies = await Movie.find()
+        .sort({ Rating: -1 })
+        .limit(6)
+        .populate('Actors', 'name')
+        .populate('Genre', 'name');
+    } else if (heroMode && heroMode.toLowerCase() === "recently added") {
+      movies = await Movie.find()
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .populate('Actors', 'name')
+        .populate('Genre', 'name');
+    } else {
+      // fallback: top 6 most rated
+      movies = await Movie.find()
+        .sort({ Rating: -1 })
+        .limit(6)
+        .populate('Actors', 'name')
+        .populate('Genre', 'name');
+    }
+    res.json({ movies, heroMode });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch hero carousel movies", error: err.message });
+  }
+};

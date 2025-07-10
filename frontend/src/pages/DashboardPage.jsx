@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [movies, setMovies] = useState([]);
+  const [heroMode, setHeroMode] = useState(""); // <-- only heroMode, not heroCarouselMovies
   const [startIdx, setStartIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [watchedCategories, setWatchedCategories] = useState({});
@@ -62,11 +63,26 @@ export default function DashboardPage() {
         ) === genre
     );
 
-  // Compute hero carousel movies: always top 6 most rated
+  // Fetch hero mode on mount
+  useEffect(() => {
+    api
+      .get("/settings/hero-mode")
+      .then((res) => setHeroMode(res.data.heroMode || "Most Rated"))
+      .catch(() => setHeroMode("Most Rated"));
+  }, []);
+
+  // Compute hero carousel movies based on heroMode and movies
   const heroCarouselMovies = React.useMemo(() => {
-    if (!safeMovies.length) return [];
-    return [...safeMovies].sort((a, b) => b.Rating - a.Rating).slice(0, 6);
-  }, [safeMovies]);
+    if (!Array.isArray(movies) || movies.length === 0) return [];
+    if (heroMode.toLowerCase() === "recently added") {
+      // Sort by createdAt descending
+      return [...movies]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 6);
+    }
+    // Default: Most Rated
+    return [...movies].sort((a, b) => b.Rating - a.Rating).slice(0, 6);
+  }, [movies, heroMode]);
 
   // Sort watched categories by count descending
   const mostWatchedCategory = sortedWatchedCategories[0] || null;
@@ -168,7 +184,7 @@ export default function DashboardPage() {
 
       {/* Hero Carousel */}
       {heroCarouselMovies.length > 0 && (
-        <HeroCarousel movies={heroCarouselMovies} />
+        <HeroCarousel movies={heroCarouselMovies} mode={heroMode} />
       )}
 
      <section className="px-8 mt-8">
@@ -245,4 +261,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-  

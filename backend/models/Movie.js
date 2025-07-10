@@ -37,7 +37,7 @@ const movieSchema = new mongoose.Schema({
   Reviews: [reviewSchema],
   Runtime:Number,
   ActorImage:[String]
-});
+},{timestamps: true});
 
 // Export models
 module.exports.Movie = mongoose.model('Movie', movieSchema, 'movies');

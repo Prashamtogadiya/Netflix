@@ -13,7 +13,8 @@ const {
   getGenres,
   getActors,
   uploadMovieImages,
-  uploadActorImages
+  uploadActorImages,
+  getHeroCarouselMovies
 } = require('../controllers/movie.controller.js');
 const { authenticate, verifyAdmin } = require('../middlewares/auth.middleware.js');
 const multer = require('multer');
@@ -73,6 +74,9 @@ router.post(
   upload.array('images', 5), 
   uploadActorImages
 );
+
+// Hero carousel movies
+router.get('/hero-carousel', getHeroCarouselMovies);
 
 // Export the router to be used in server.js
 module.exports = router;
