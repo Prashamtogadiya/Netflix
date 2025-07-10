@@ -153,8 +153,6 @@ export default function HeroCarousel({ movies = [] }) {
     .swiper-button-next,
     .swiper-button-prev {
       color: white !important;
-      width: 44px;
-      height: 44px;
     }
 
     .swiper-button-next::after,
