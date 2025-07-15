@@ -1,5 +1,7 @@
 const Setting = require("../models/Setting");
 
+
+// Get all modes added by admin
 exports.getAllModes = async (req, res) => {
   try {
     let doc = await Setting.findOne({ type: "modes" });
@@ -15,6 +17,8 @@ exports.getAllModes = async (req, res) => {
   }
 };
 
+
+// Add new mode
 exports.addNewMode = async (req, res) => {
   try {
     const { mode } = req.body;
@@ -40,6 +44,8 @@ exports.addNewMode = async (req, res) => {
   }
 };
 
+
+// Set hero mode for hero carousel
 exports.setHeroMode = async (req, res) => {
   try {
     const { mode } = req.body;
