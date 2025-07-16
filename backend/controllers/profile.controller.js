@@ -254,3 +254,51 @@ exports.getWatchedCategories = async (req, res) => {
     });
   }
 };
+
+
+exports.addOrUpdateWatchHistory = async (req,res)=>{
+  try{
+    const {profileId,movieId,progress,duration}=req.body
+    if(!profileId || !movieId){
+      return res.status(400).json({message:"profileId and movieId are required"})
+    }
+    const profile = await Profile.findById(profileId);
+    if(!profile){
+      return res.status(404).json({message:"Profile not found"})
+    }
+
+    profile.watchHistory = profile.watchHistory.filter(
+      (entry) => entry.movie.toString() !== movieId
+    );
+    profile.watchHistory.unshift({
+      movie: movieId,
+      watchedAt: new Date(), // <-- fix typo here
+      progress: progress || 0,
+      duration: duration || 0
+    });
+
+    profile.watchHistory = profile.watchHistory.slice(0, 100); // Keep only the last 100 entries
+    await profile.save();
+    res.json({message:"Watch history updated", watchHistory: profile.watchHistory});
+  }catch(err){
+    console.error("Failed to update watch history:", err);
+    res.status(500).json({message:"Failed to update watch history", error: err.message});
+  }
+}
+
+exports.getWatchHistory = async(req,res)=>{
+  try{
+    const {profileId} = req.body;
+    if(!profileId){
+      return res.status(400).json({message:"profileId is required"});
+    }
+    const profile = await Profile.findById(profileId).populate("watchHistory.movie");
+    if(!profile){
+      return res.status(404).json({message:"Profile not found"});
+    }
+    res.json({watchHistory: profile.watchHistory});
+  }catch(err){
+    console.error("Failed to fetch watch history:", err);
+    res.status(500).json({message:"Failed to fetch watch history", error: err.message});
+  }
+}

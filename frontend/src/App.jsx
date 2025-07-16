@@ -15,6 +15,8 @@ import { setUser } from "./features/user/userSlice";
 import Movies from "./pages/Movies";
 import AllMoviesPage from "./pages/AllMoviesPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
+import HistoryPage from "./pages/HistoryPage";
+
 
 function App() {
   const dispatch = useDispatch();
@@ -69,6 +71,14 @@ function App() {
           element={
             <RequireAuth>
               <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <RequireAuth>
+              <HistoryPage />
             </RequireAuth>
           }
         />

@@ -49,6 +49,14 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         >
           TV Shows
         </a>
+        {location.pathname !== "/history" && (
+          <a
+            href="/history"
+            className="text-white font-semibold hover:text-red-500 transition"
+          >
+            History
+          </a>
+        )}
         <a
           href="/movies"
           className="text-white font-semibold hover:text-red-500 transition"
@@ -61,11 +69,10 @@ export default function Navbar({ profile, profileURL, onLogout }) {
         >
           My List
         </a>
-        
       </div>
       <div className="flex items-center gap-4 relative">
         <div>
-          <SearchBar/>
+          <SearchBar />
         </div>
         {/* Profile avatar with dropdown */}
         <div className="relative" ref={dropdownRef}>

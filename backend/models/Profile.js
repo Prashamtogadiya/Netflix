@@ -16,7 +16,27 @@ const profileSchema = new Schema({
   watchedCategories: {
     type: Object,
     default: {},
+  },
+  watchHistory:[
+    {
+    movie:{
+      type:mongoose.Schema.Types.ObjectId,
+      ref:'Movie',
+    },
+    watchedAt:{
+      type:Date,
+      default:Date.now
+    },
+    progress:{
+      type:Number,
+      default:0
+    },
+    duration:{
+      type:Number,
+      default:0
+    }
   }
+  ]
 });
 
 // Export the Profile model, using the 'profiles' collection in MongoDB

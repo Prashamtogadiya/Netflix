@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import api from "../api";
@@ -10,23 +10,6 @@ import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 import ReviewSection from "../components/ReviewSection";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-
-// Add this Flex component for layout (since shadcn/radix UI uses Flex in the example)
-function Flex({ children, gap = "3", mt = "0", justify = "start", ...props }) {
-  const gapClass = gap === "3" ? "gap-3" : "";
-  const mtClass = mt === "4" ? "mt-4" : mt === "3" ? "mt-3" : "";
-  const justifyClass =
-    justify === "end"
-      ? "justify-end"
-      : justify === "center"
-      ? "justify-center"
-      : "justify-start";
-  return (
-    <div className={`flex ${gapClass} ${mtClass} ${justifyClass}`} {...props}>
-      {children}
-    </div>
-  );
-}
 
 export default function MovieDetailPage() {
   const { movieId } = useParams();
@@ -45,6 +28,8 @@ export default function MovieDetailPage() {
   const [myListMovies, setMyListMovies] = useState([]);
   const [myListLoading, setMyListLoading] = useState(true);
 
+  const videoRef = useRef();
+  const [resumeTime, setResumeTime] = useState(0);
   const [inMyList, setInMyList] = useState(false);
   const [listLoading, setListLoading] = useState(false);
 
@@ -53,11 +38,25 @@ export default function MovieDetailPage() {
   const [pendingAction, setPendingAction] = useState(null);
   const [watchedCategories, setWatchedCategories] = useState({});
 
+  useEffect(() => {
+    if (!profile || !movie?._id) return;
+    api
+      .post(`/profiles/get-watch-history`, {
+        profileId: profile._id,
+      })
+      .then((res) => {
+        const entry = res.data.watchHistory.find(
+          (h) => h.movie._id === movie._id
+        );
+        if (entry && entry.progress > 0) setResumeTime(entry.progress);
+      });
+  },[profile, movie?._id]);
+
   // Combine reset and fetch logic into one effect
   useEffect(() => {
     setMovie(null);
     setLoading(true);
-    const MIN_LOADING_TIME = 1000; 
+    const MIN_LOADING_TIME = 1000;
     const startTime = Date.now();
 
     const fetchData = async () => {
@@ -103,7 +102,7 @@ export default function MovieDetailPage() {
       })
       .catch(() => setInMyList(false))
       .finally(() => setListLoading(false));
-  }, [profile, movie?._id]);
+  }, [profile, movie?._id, movie?.Runtime]);
 
   useEffect(() => {
     api
@@ -123,21 +122,35 @@ export default function MovieDetailPage() {
   // Track watched category when movie is loaded and profile exists
   useEffect(() => {
     if (!profile || !movie?._id) return;
-    api.post("/profiles/watched/update", {
-      profileId: profile._id,
-      movieId: movie._id,
-    }).catch(() => {});
-  }, [profile, movie?._id]);
+    api
+      .post("/profiles/watched/update", {
+        profileId: profile._id,
+        movieId: movie._id,
+      })
+      .catch(() => {});
+  }, [profile, movie?._id, movie?.Runtime]);
 
   // Fetch watched categories for the current profile
   useEffect(() => {
     if (!profile) return;
-    api.post("/profiles/watched", { profileId: profile._id })
+    api
+      .post("/profiles/watched", { profileId: profile._id })
       .then((res) => {
         setWatchedCategories(res.data.watchedCategories || {});
       })
       .catch(() => {});
   }, [profile]);
+
+  const handleProgressSave = async (currentTime, duration) => {
+    if (!profile || !movie?._id) return;
+    await api.post("/profiles/watch-history", {
+      profileId: profile._id,
+      movieId: movie._id,
+      progress: currentTime,
+      duration: duration,
+    });
+  };
+
 
   // Helper to check genre match (handles both string and object)
   const hasGenre = (movie, genre) =>
@@ -148,8 +161,7 @@ export default function MovieDetailPage() {
           ? g.name
           : typeof g === "string"
           ? g
-          : ""
-        ) === genre
+          : "") === genre
     );
 
   // Filter movies for "Action" genre
@@ -190,8 +202,7 @@ export default function MovieDetailPage() {
                 ? g.name
                 : typeof g === "string"
                 ? g
-                : ""
-              ) === cat
+                : "") === cat
           ) &&
           !seen.has(m._id)
         ) {
@@ -256,6 +267,17 @@ export default function MovieDetailPage() {
     setAlertOpen(true);
   };
 
+  useEffect(() => {
+    if (!profile || !movie?._id) return;
+    // Add to watch history with progress 0 and duration 0 on page load
+    api.post("/profiles/watch-history", {
+      profileId: profile._id,
+      movieId: movie._id,
+      progress: 0,
+      duration: movie.Runtime || 0
+    }).catch(() => {});
+  }, [profile, movie?._id]);
+
   if (loading) return <NetflixLoader />;
   if (!movie) {
     return (
@@ -282,13 +304,18 @@ export default function MovieDetailPage() {
       {/* Video Player */}
       <div className="pt-18">
         <div className="w-full h-[calc(100vh-64px)] bg-gray-950">
-          <iframe
+          <video
+            ref={videoRef}
             src={movie.Video}
-            title="YouTube video player"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            controls
             className="w-full h-full"
-            allowFullScreen
-          ></iframe>
+            onPause={e => handleProgressSave(e.target.currentTime, e.target.duration)}
+            onEnded={e => handleProgressSave(e.target.duration, e.target.duration)}
+            onLoadedMetadata={() => {
+              if (resumeTime && videoRef.current) videoRef.current.currentTime = resumeTime;
+            }}
+            autoPlay
+          />
         </div>
       </div>
       <div className="max-w-4xl mx-auto px-4 py-6">
@@ -364,17 +391,22 @@ export default function MovieDetailPage() {
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-zinc-800">
                   <AlertDialog.Title className="text-xl font-semibold text-white">
-                    {alertType === "add" ? "Add to My List" : "Remove from My List"}
+                    {alertType === "add"
+                      ? "Add to My List"
+                      : "Remove from My List"}
                   </AlertDialog.Title>
                 </div>
 
                 {/* Content */}
                 <div className="px-6 py-6">
                   <AlertDialog.Description className="text-zinc-300 text-base leading-relaxed">
-                    {alertType === "add" 
-                      ? `Are you sure you want to add "${movie?.Title || 'this movie'}" to your list?`
-                      : `Are you sure you want to remove "${movie?.Title || 'this movie'}" from your list?`
-                    }
+                    {alertType === "add"
+                      ? `Are you sure you want to add "${
+                          movie?.Title || "this movie"
+                        }" to your list?`
+                      : `Are you sure you want to remove "${
+                          movie?.Title || "this movie"
+                        }" from your list?`}
                   </AlertDialog.Description>
                 </div>
 
@@ -446,7 +478,11 @@ export default function MovieDetailPage() {
             ? `More ${mostWatchedCategory} Movies`
             : "More Like This"}
         </h2>
-        <MovieCarousel movies={prioritizedMovies} visibleCount={5} cardWidth={340} />
+        <MovieCarousel
+          movies={prioritizedMovies}
+          visibleCount={5}
+          cardWidth={340}
+        />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular on Netflix</h2>

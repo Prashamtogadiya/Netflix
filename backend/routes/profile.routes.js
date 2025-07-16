@@ -1,7 +1,7 @@
 // Import express for routing
 const express = require('express');
 // Import profile controllers
-const { createProfile, getProfiles, updateProfile, deleteProfile, updateWatchedCategories, getWatchedCategories } = require('../controllers/profile.controller.js');
+const { createProfile, getProfiles, updateProfile, deleteProfile, updateWatchedCategories, getWatchedCategories, addOrUpdateWatchHistory,getWatchHistory } = require('../controllers/profile.controller.js');
 const { addMovieToMyList, removeMovieFromMyList, getMyList } = require('../controllers/profile.controller.js');
 
 // Import authentication middleware to protect routes
@@ -30,6 +30,10 @@ router.post('/mylist/add', addMovieToMyList);
 router.post('/mylist/remove', removeMovieFromMyList);
 // Route to get all movies in a profile's myList (with details)
 router.get('/:profileId/mylist', getMyList);
+
+router.post('/watch-history',addOrUpdateWatchHistory);
+router.post('/get-watch-history', getWatchHistory);
+
 
 // Export the router to be used in server.js
 module.exports = router;
