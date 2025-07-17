@@ -76,7 +76,7 @@ export default function MovieCarouselSimple({ movies, watchHistory = [] }) {
               onClick={() => navigate(`/movies/${movie._id}`)}
             >
               {/* Movie image with progress bar fixed at bottom */}
-              <div className="w-full h-44 bg-black flex items-center justify-center relative">
+              <div className="w-full h-51 bg-black flex items-center justify-center relative">
                 <img
                   src={
                     Array.isArray(movie.Image) && movie.Image.length > 0
@@ -104,7 +104,7 @@ export default function MovieCarouselSimple({ movies, watchHistory = [] }) {
                 )}
               </div>
               {/* Movie info */}
-              <div className="w-full flex flex-col items-start px-4 py-9">
+              <div className="w-full flex flex-col items-start px-4 py-4">
                 <h3 className="text-lg font-bold mb-1 truncate w-full">
                   {movie.Title}
                 </h3>

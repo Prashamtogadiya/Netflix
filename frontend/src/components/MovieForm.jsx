@@ -5,9 +5,17 @@ import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import { Rating, Typography, Box } from "@mui/material";
 
+// Text input field with label and error display
+function FormTextField({
+  label,
+  value,
+  onChange,
+  error,
+  helperText,
+  ...props
+}) {
+  // Renders a basic text field with error handling
 
-// Text input field
-function FormTextField({ label, value, onChange, error, helperText, ...props }) {
   return (
     <TextField
       variant="outlined"
@@ -32,8 +40,17 @@ function FormTextField({ label, value, onChange, error, helperText, ...props }) 
   );
 }
 
-// Multi-value autocomplete field
-function FormMultiAutocomplete({ label, options, value, onChange, error, helperText }) {
+// Multi-value autocomplete (for example: picking genres, actors, etc)
+function FormMultiAutocomplete({
+  label,
+  options,
+  value,
+  onChange,
+  error,
+  helperText,
+}) {
+  // Shows a list of options that the user can select multiple from
+
   return (
     <Autocomplete
       multiple
@@ -74,8 +91,17 @@ function FormMultiAutocomplete({ label, options, value, onChange, error, helperT
   );
 }
 
-// Single-value autocomplete field
-function FormSingleAutocomplete({ label, value, onChange, error, helperText, ...props }) {
+// Single-value autocomplete (for example: picking one director)
+function FormSingleAutocomplete({
+  label,
+  value,
+  onChange,
+  error,
+  helperText,
+  ...props
+}) {
+  // Shows a list of options to select one item
+
   return (
     <Autocomplete
       freeSolo
@@ -107,8 +133,17 @@ function FormSingleAutocomplete({ label, value, onChange, error, helperText, ...
   );
 }
 
-// Image upload field
-function ImageUploadField({ label, images, onChange, onRemove, existingImages, onRemoveExisting }) {
+// Image upload field for uploading images
+function ImageUploadField({
+  label,
+  images,
+  onChange,
+  onRemove,
+  existingImages,
+  onRemoveExisting,
+}) {
+  // Shows preview of uploaded (or to-be-uploaded) images,
+  // plus lets user remove individual images
   return (
     <div className="md:col-span-2">
       <label className="block text-white font-semibold mb-2">{label}</label>
@@ -144,7 +179,8 @@ function ImageUploadField({ label, images, onChange, onRemove, existingImages, o
             </div>
           ))}
         {/* New images */}
-        {images && images.length > 0 &&
+        {images &&
+          images.length > 0 &&
           images.map((file, idx) => (
             <div key={idx} className="relative">
               <img
@@ -169,7 +205,8 @@ function ImageUploadField({ label, images, onChange, onRemove, existingImages, o
 
 // --- Main MovieForm Component ---
 export default function MovieForm({ onSuccess, movie }) {
-  // Form state for all movie fields
+  // Form state for each movie field (title, description, etc)
+  // If editing, start with the movie's data; otherwise, use blanks
   const [form, setForm] = useState(
     movie || {
       Title: "",
@@ -209,48 +246,80 @@ export default function MovieForm({ onSuccess, movie }) {
   // Validate form fields before submitting
   const validate = () => {
     const newErrors = {};
+    // Check title has at least 2 characters
+
     if (!form.Title || form.Title.trim().length < 2)
       newErrors.Title = "Title is required (min 2 chars)";
+    // Check description is long enough
+
     if (!form.Description || form.Description.trim().length < 10)
       newErrors.Description = "Description is required (min 10 chars)";
+    // Check director name
+
     if (!form.Director || form.Director.trim().length < 2)
       newErrors.Director = "Director is required (min 2 chars)";
-    if (!form.Year || isNaN(form.Year) || form.Year < 1880 || form.Year > new Date().getFullYear() + 1)
+    // Check that year is valid
+
+    if (
+      !form.Year ||
+      isNaN(form.Year) ||
+      form.Year < 1880 ||
+      form.Year > new Date().getFullYear() + 1
+    )
       newErrors.Year = "Enter a valid year";
+    // Check runtime is positive number
+
     if (!form.Runtime || isNaN(form.Runtime) || form.Runtime < 1)
       newErrors.Runtime = "Runtime must be a positive number";
-    if (!form.Rating || isNaN(form.Rating) || form.Rating < 0 || form.Rating > 10)
+    // Check rating in the 0-10 range
+
+    if (
+      !form.Rating ||
+      isNaN(form.Rating) ||
+      form.Rating < 0 ||
+      form.Rating > 10
+    )
       newErrors.Rating = "Rating must be between 0 and 10";
+    // At least one genre
+
     if (!form.Genre || form.Genre.length === 0)
       newErrors.Genre = "At least one genre is required";
+    // At least one actor
+
     if (!form.Actors || form.Actors.length === 0)
       newErrors.Actors = "At least one actor is required";
+    // At least one language
+
     if (!form.Language || form.Language.length === 0)
       newErrors.Language = "At least one language is required";
+    // At least one type
+
     if (!form.Types || form.Types.length === 0)
       newErrors.Types = "At least one type is required";
+    // Must have at least one image (either existing or new)
+
     if (
       (!form.Image || form.Image.length === 0) &&
       (!movieImages || movieImages.length === 0)
     ) {
       newErrors.Image = "At least one image URL is required";
     }
+    // Video must be a valid url
+
     if (!form.Video || !/^https?:\/\/.+/.test(form.Video))
       newErrors.Video = "A valid video URL is required";
     return newErrors;
   };
 
-  // Convert selected names to IDs for backend submission
+  // Helper to turn selected names into IDs for backend
   const getIdsFromNames = (selected, options) => {
     return selected.map((sel) => {
-      const found = options.find(
-        (opt) => opt.name === sel || opt._id === sel
-      );
+      const found = options.find((opt) => opt.name === sel || opt._id === sel);
       return found ? found._id : sel;
     });
   };
 
-  // Normalize values for Autocomplete fields (for edit mode)
+  // Helper to display selected autocomplete values as names (not objects or IDs)
   const normalizeValue = (value, options) => {
     // value: the array of selected items (could be strings, objects, or IDs)
     // options: the list of all possible options (e.g., all actors or genres from the backend)
@@ -260,15 +329,15 @@ export default function MovieForm({ onSuccess, movie }) {
 
     return value.map((v) => {
       // For each item in the value array:
-      if (typeof v === "object" && v !== null && v.name) 
+      if (typeof v === "object" && v !== null && v.name)
         // If v is an object and has a 'name' property (e.g., { _id: "...", name: "Action" })
         return v.name; // Return the name string (e.g., "Action")
 
-      if (typeof v === "string") 
+      if (typeof v === "string")
         // If v is already a string (e.g., "Action")
         return v; // Return it as is
 
-      if (typeof v === "number") 
+      if (typeof v === "number")
         // If v is a number (e.g., 123)
         return v.toString(); // Convert to string
 
@@ -280,7 +349,7 @@ export default function MovieForm({ onSuccess, movie }) {
     });
   };
 
-  // Reset actors and genres if not editing a movie
+  // When not editing a movie, start with empty actors and genre
   useEffect(() => {
     if (!movie) {
       setForm((prev) => ({
@@ -317,7 +386,7 @@ export default function MovieForm({ onSuccess, movie }) {
     setActorImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  // Remove an existing movie image (already saved in DB)
+  // Remove a movie image that is already uploaded (editing)
   const handleRemoveExistingMovieImage = (idx) => {
     setForm((prev) => ({
       ...prev,
@@ -325,7 +394,7 @@ export default function MovieForm({ onSuccess, movie }) {
     }));
   };
 
-  // Remove an existing actor image (already saved in DB)
+  // Remove an actor image that is already uploaded (editing)
   const handleRemoveExistingActorImage = (idx) => {
     setForm((prev) => ({
       ...prev,
@@ -340,7 +409,7 @@ export default function MovieForm({ onSuccess, movie }) {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
-      console.log("Validation errors:", validationErrors); 
+      console.log("Validation errors:", validationErrors);
       setLoading(false);
       return;
     }
@@ -353,14 +422,18 @@ export default function MovieForm({ onSuccess, movie }) {
         movieImages.forEach((file) => {
           if (file && file instanceof File) formData.append("images", file);
         });
-        console.log("Files to upload (movieImages):", movieImages); 
+        console.log("Files to upload (movieImages):", movieImages);
         if (formData.getAll("images").length > 0) {
           try {
-            const res = await api.post("/movies/upload/movie-images", formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
+            const res = await api.post(
+              "/movies/upload/movie-images",
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
             uploadedMovieImageNames = res.data.filenames;
-            console.log("Uploaded movie image names:", uploadedMovieImageNames); 
+            console.log("Uploaded movie image names:", uploadedMovieImageNames);
           } catch (uploadErr) {
             console.error("Movie image upload failed:", uploadErr);
             alert("Movie image upload failed. Check console.");
@@ -368,10 +441,10 @@ export default function MovieForm({ onSuccess, movie }) {
             return;
           }
         } else {
-          console.log("No files appended to FormData for movie images."); 
+          console.log("No files appended to FormData for movie images.");
         }
       } else {
-        console.log("No movieImages selected."); 
+        console.log("No movieImages selected.");
       }
 
       // Upload new actor images if any
@@ -381,14 +454,18 @@ export default function MovieForm({ onSuccess, movie }) {
         actorImages.forEach((file) => {
           if (file && file instanceof File) formData.append("images", file);
         });
-        console.log("Files to upload (actorImages):", actorImages); 
+        console.log("Files to upload (actorImages):", actorImages);
         if (formData.getAll("images").length > 0) {
           try {
-            const res = await api.post("/movies/upload/actor-images", formData, {
-              headers: { "Content-Type": "multipart/form-data" },
-            });
+            const res = await api.post(
+              "/movies/upload/actor-images",
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
             uploadedActorImageNames = res.data.filenames;
-            console.log("Uploaded actor image names:", uploadedActorImageNames); 
+            console.log("Uploaded actor image names:", uploadedActorImageNames);
           } catch (uploadErr) {
             console.error("Actor image upload failed:", uploadErr);
             alert("Actor image upload failed. Check console.");
@@ -396,10 +473,10 @@ export default function MovieForm({ onSuccess, movie }) {
             return;
           }
         } else {
-          console.log("No files appended to FormData for actor images."); 
+          console.log("No files appended to FormData for actor images.");
         }
       } else {
-        console.log("No actorImages selected."); 
+        console.log("No actorImages selected.");
       }
 
       // Prepare payload for backend
@@ -409,14 +486,24 @@ export default function MovieForm({ onSuccess, movie }) {
 
       // For add: use only new uploads, for edit: merge with existing
       const finalImages = isEdit
-        ? [...(Array.isArray(form.Image) ? form.Image : []), ...uploadedMovieImageNames]
+        ? [
+            ...(Array.isArray(form.Image) ? form.Image : []),
+            ...uploadedMovieImageNames,
+          ]
         : uploadedMovieImageNames;
-      const filteredImages = finalImages.filter((img) => !!img && typeof img === "string");
+      const filteredImages = finalImages.filter(
+        (img) => !!img && typeof img === "string"
+      );
 
       const finalActorImages = isEdit
-        ? [...(Array.isArray(form.ActorImage) ? form.ActorImage : []), ...uploadedActorImageNames]
+        ? [
+            ...(Array.isArray(form.ActorImage) ? form.ActorImage : []),
+            ...uploadedActorImageNames,
+          ]
         : uploadedActorImageNames;
-      const filteredActorImages = finalActorImages.filter((img) => !!img && typeof img === "string");
+      const filteredActorImages = finalActorImages.filter(
+        (img) => !!img && typeof img === "string"
+      );
 
       const payload = {
         Title: form.Title,
@@ -458,17 +545,17 @@ export default function MovieForm({ onSuccess, movie }) {
         Image: filteredImages,
         Video: form.Video,
         Runtime: form.Runtime ? Number(form.Runtime) : undefined,
-        ActorImage: filteredActorImages.slice(0, Array.isArray(actors) ? actors.length : 0),
+        ActorImage: filteredActorImages.slice(
+          0,
+          Array.isArray(actors) ? actors.length : 0
+        ),
       };
 
-      console.log("Final payload", payload); 
+      console.log("Final payload", payload);
 
       // Remove only undefined/null fields, but keep empty arrays for images
       Object.keys(payload).forEach((key) => {
-        if (
-          payload[key] === undefined ||
-          payload[key] === null
-        ) {
+        if (payload[key] === undefined || payload[key] === null) {
           delete payload[key];
         }
       });
@@ -497,30 +584,32 @@ export default function MovieForm({ onSuccess, movie }) {
         throw new Error(response.data?.message || "Failed to save movie");
       }
       // If backend returns movie object, check for _id
-      if (!response.data || (!response.data._id && !response.data.movie && !response.data.success)) {
-        alert("Movie was not added. Backend did not return a valid movie object.");
+      if (
+        !response.data ||
+        (!response.data._id && !response.data.movie && !response.data.success)
+      ) {
+        alert(
+          "Movie was not added. Backend did not return a valid movie object."
+        );
         setLoading(false);
         return;
       }
       onSuccess();
     } catch (err) {
-      console.error("Movie save error:", err); 
+      console.error("Movie save error:", err);
       alert(
         err.response?.data?.message ||
-        err.message ||
-        "Failed to save movie. Please check all required fields and try again."
+          err.message ||
+          "Failed to save movie. Please check all required fields and try again."
       );
     }
     setLoading(false);
   };
 
-
   // Add new actor to backend if not found in options
   const handleActorsChange = async (_, value) => {
     const newActors = value.filter(
-      (v) =>
-        typeof v === "string" &&
-        !actorOptions.some((a) => a.name === v)
+      (v) => typeof v === "string" && !actorOptions.some((a) => a.name === v)
     );
     let updatedActorOptions = [...actorOptions];
     if (newActors.length > 0) {
@@ -574,8 +663,17 @@ export default function MovieForm({ onSuccess, movie }) {
       <FormMultiAutocomplete
         label="Languages"
         options={[
-          "English", "Spanish", "French", "German", "Chinese", "Japanese",
-          "Hindi", "Korean", "Italian", "Portuguese", "Russian"
+          "English",
+          "Spanish",
+          "French",
+          "German",
+          "Chinese",
+          "Japanese",
+          "Hindi",
+          "Korean",
+          "Italian",
+          "Portuguese",
+          "Russian",
         ]}
         value={Array.isArray(form.Language) ? form.Language : []}
         onChange={(_, v) => handleAutoChange("Language", v)}
@@ -616,7 +714,9 @@ export default function MovieForm({ onSuccess, movie }) {
           }}
         />
         {errors.Rating && (
-          <Typography sx={{ color: "red", fontSize: 12 }}>{errors.Rating}</Typography>
+          <Typography sx={{ color: "red", fontSize: 12 }}>
+            {errors.Rating}
+          </Typography>
         )}
       </Box>
       <FormSingleAutocomplete
@@ -648,7 +748,7 @@ export default function MovieForm({ onSuccess, movie }) {
       <FormTextField
         label="Description"
         value={form.Description}
-        onChange={e => handleAutoChange("Description", e.target.value)}
+        onChange={(e) => handleAutoChange("Description", e.target.value)}
         error={errors.Description}
         helperText={errors.Description}
         multiline
@@ -706,4 +806,3 @@ export default function MovieForm({ onSuccess, movie }) {
     </form>
   );
 }
-

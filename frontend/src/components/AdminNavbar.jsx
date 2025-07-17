@@ -39,8 +39,7 @@ export default function AdminNavbar() {
         <div>
           <SearchBar />
         </div>
-        {/* Remove Settings dropdown */}
-        {/* Profile avatar with dropdown */}
+        
         <button
           onClick={() => {
             handleLogout();
