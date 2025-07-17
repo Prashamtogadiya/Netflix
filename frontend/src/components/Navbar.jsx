@@ -67,7 +67,11 @@ export default function Navbar({ profile, profileURL, onLogout }) {
                 <a
                   key={link.href}
                   href={link.href}
-                  className="text-white font-medium text-base hover:text-red-500 transition-all tracking-wide px-2 pb-0.5 border-b-2 border-transparent hover:border-red-500"
+                  className="relative text-white font-medium text-base tracking-wide px-2 pb-0.5
+                    after:absolute after:left-0 after:bottom-0 after:w-full after:h-[2px] after:bg-red-500
+                    after:scale-x-0 after:transition-transform after:duration-300 after:origin-left
+                    hover:after:scale-x-100 focus:after:scale-x-100"
+                  style={{ borderBottom: "none" }}
                 >
                   {link.label}
                 </a>
