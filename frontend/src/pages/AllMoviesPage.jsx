@@ -7,6 +7,7 @@ import { clearProfiles } from "../features/profiles/profileSlice";
 import Footer from "../components/Footer";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
+import * as Progress from "@radix-ui/react-progress";
 
 // Helper to get query params from the URL
 function useQuery() {
@@ -23,6 +24,7 @@ export default function AllMoviesPage() {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [watchedCategories, setWatchedCategories] = useState({});
+  const [history, setHistory] = useState([]);
 
   // Redux and router hooks
   const profile = useSelector((state) => state.profiles.selectedProfile);
@@ -90,7 +92,13 @@ export default function AllMoviesPage() {
       })
       .catch(() => {});
   }, [profile]);
-
+  useEffect(() => {
+    if (!profile) return;
+    api
+      .post("/profiles/get-watch-history", { profileId: profile._id })
+      .then((res) => setHistory(res.data.watchHistory || []))
+      .catch(() => setHistory([]));
+  }, [profile]);
   const mostWatchedCategory = React.useMemo(() => {
     if (!watchedCategories) return null;
     let max = 0, result = null;
@@ -176,6 +184,17 @@ export default function AllMoviesPage() {
     navigate("/login");
   };
 
+  // Helper to get progress for a movie
+  const getProgress = (movieId) => {
+    const entry = history.find(
+      (h) => (h.movie._id || h.movie) === movieId
+    );
+    if (entry && entry.duration > 0) {
+      return Math.round((entry.progress / entry.duration) * 100);
+    }
+    return null;
+  };
+
   // Show loader while loading the first page
   if (loading && page === 1) return <NetflixLoader />;
 
@@ -201,47 +220,67 @@ export default function AllMoviesPage() {
             </div>
           )}
           {/* Render each movie card */}
-          {prioritizedMovies.map((movie) => (
-            <div
-              key={movie._id}
-              className="bg-gray-900 rounded-lg shadow-lg overflow-hidden cursor-pointer group transition hover:scale-105"
-              onClick={() => navigate(`/movies/${movie._id}`)}
-            >
-              <img
-                 src={
-                Array.isArray(movie.Image) && movie.Image.length > 0
-                  ? (
-                      movie.Image[0].startsWith("http")
-                        ? movie.Image[0]
-                        : `http://localhost:5000/uploads/${movie.Image[0]}`
-                    )
-                  : "https://placehold.co/220x330?text=No+Image"
-              }
-                alt={movie.Title}
-                className="w-full h-64 object-cover"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-bold mb-1 truncate">{movie.Title}</h3>
-                <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold mb-2">
+          {prioritizedMovies.map((movie) => {
+            const progressValue = getProgress(movie._id);
+            return (
+              <div
+                key={movie._id}
+                className="bg-gray-900 rounded-lg shadow-lg overflow-hidden cursor-pointer group transition hover:scale-105 relative"
+                onClick={() => navigate(`/movies/${movie._id}`)}
+              >
+                <div className="relative">
                   <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
-                    alt="IMDb"
-                    className="w-8 h-4 object-contain"
+                    src={
+                      Array.isArray(movie.Image) && movie.Image.length > 0
+                        ? (
+                            movie.Image[0].startsWith("http")
+                              ? movie.Image[0]
+                              : `http://localhost:5000/uploads/${movie.Image[0]}`
+                          )
+                        : "https://placehold.co/220x330?text=No+Image"
+                    }
+                    alt={movie.Title}
+                    className="w-full h-64 object-cover"
                   />
-                  <span>{movie.Rating || "N/A"}</span>
-                  <span>·</span>
-                  <span>{movie.Year}</span>
-                  <span>·</span>
-                  <span>
-                    {movie.Runtime && !isNaN(movie.Runtime)
-                      ? `${Math.floor(movie.Runtime / 60)}h ${movie.Runtime % 60}m`
-                      : "N/A"}
-                  </span>
+                  {/* Progress bar if user has watched */}
+                  {progressValue !== null && (
+                    <div className="absolute left-0 bottom-0 w-full px-2 pb-1 z-20">
+                      <Progress.Root
+                        value={progressValue}
+                        className="w-full h-1 bg-gray-700 rounded"
+                        style={{ maxWidth: "100%" }}
+                      >
+                        <Progress.Indicator
+                          className="h-1 rounded bg-red-500 transition-all"
+                          style={{ width: `${progressValue}%` }}
+                        />
+                      </Progress.Root>
+                    </div>
+                  )}
                 </div>
-                <p className="text-xs text-gray-300 line-clamp-2">{movie.Description}</p>
+                <div className="p-4">
+                  <h3 className="text-lg font-bold mb-1 truncate">{movie.Title}</h3>
+                  <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold mb-2">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
+                      alt="IMDb"
+                      className="w-8 h-4 object-contain"
+                    />
+                    <span>{movie.Rating || "N/A"}</span>
+                    <span>·</span>
+                    <span>{movie.Year}</span>
+                    <span>·</span>
+                    <span>
+                      {movie.Runtime && !isNaN(movie.Runtime)
+                        ? `${Math.floor(movie.Runtime / 60)}h ${movie.Runtime % 60}m`
+                        : "N/A"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-300 line-clamp-2">{movie.Description}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         {/* Loader for infinite scroll */}
         {hasMore && (

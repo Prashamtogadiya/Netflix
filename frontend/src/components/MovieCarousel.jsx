@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import * as Progress from "@radix-ui/react-progress";
 
 // Helper to format runtime in minutes to "Xh Ym"
 function formatRuntime(runtime) {
@@ -10,7 +11,7 @@ function formatRuntime(runtime) {
 }
 
 // Shows a horizontal carousel of movie cards with navigation arrows and "View More" button.
-export default function MovieCarousel({ movies, category }) {
+export default function MovieCarousel({ movies, category, watchHistory = [] }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [atEnd, setAtEnd] = useState(false);
@@ -79,6 +80,17 @@ export default function MovieCarousel({ movies, category }) {
     }
   };
 
+  // Helper to get progress for a movie
+  const getProgress = (movieId) => {
+    const entry = watchHistory.find(
+      (h) => (h.movie._id || h.movie) === movieId
+    );
+    if (entry && entry.duration > 0) {
+      return Math.round((entry.progress / entry.duration) * 100);
+    }
+    return null;
+  };
+
   return (
     <div className="relative px-5">
       {/* Left arrow button */}
@@ -132,54 +144,73 @@ export default function MovieCarousel({ movies, category }) {
           <div className="text-gray-400">No movies found.</div>
         )}
         {/* Render up to 10 movie cards */}
-        {movies.slice(0, 10).map((movie) => (
-          <div
-            key={movie._id}
-            className="snap-start min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 truncate cursor-pointer"
-            onClick={() => navigate(`/movies/${movie._id}`)}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "scale(1.07)")
-            }
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            style={{
-              transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
-          >
-            {/* Movie poster image */}
-            <img
-              src={
-                Array.isArray(movie.Image) && movie.Image.length > 0
-                  ? (
-                      movie.Image[0].startsWith("http")
-                        ? movie.Image[0]
-                        : `http://localhost:5000/uploads/${movie.Image[0]}`
-                    )
-                  : "https://placehold.co/220x330?text=No+Image"
+        {movies.slice(0, 10).map((movie) => {
+          const progressValue = getProgress(movie._id);
+          return (
+            <div
+              key={movie._id}
+              className="snap-start min-w-[320px] max-w-[320px] h-50 rounded-lg shadow-lg flex-shrink-0 relative overflow-hidden group bg-gray-900 truncate cursor-pointer"
+              onClick={() => navigate(`/movies/${movie._id}`)}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "scale(1.07)")
               }
-              alt={movie.Title}
-              className="absolute inset-0 w-full h-full object-cover rounded-lg"
-              style={{ transition: "filter 0.3s" }}
-            />
-            {/* Overlay for gradient effect */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-lg"></div>
-            {/* Movie info at the bottom */}
-            <div className="absolute left-0 bottom-0 z-10 p-3 w-full">
-              <h3 className="text-2xl truncate mb-1">{movie.Title}</h3>
-              <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
-                  alt="IMDb"
-                  className="w-8 h-4 object-contain"
-                />
-                <span>{movie.Rating || "N/A"}</span>
-                <span>·</span>
-                <span>{movie.Year}</span>
-                <span>·</span>
-                <span>{formatRuntime(movie.Runtime)}</span>
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              style={{
+                transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            >
+              {/* Movie poster image */}
+              <img
+                src={
+                  Array.isArray(movie.Image) && movie.Image.length > 0
+                    ? (
+                        movie.Image[0].startsWith("http")
+                          ? movie.Image[0]
+                          : `http://localhost:5000/uploads/${movie.Image[0]}`
+                      )
+                    : "https://placehold.co/220x330?text=No+Image"
+                }
+                alt={movie.Title}
+                className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                style={{ transition: "filter 0.3s" }}
+              />
+              {/* Progress bar if user has watched */}
+              {progressValue !== null && (
+                <div className="absolute left-0 bottom-0 w-full px-3 pb-1 z-20">
+                  <Progress.Root
+                    value={progressValue}
+                    className="w-full h-1 bg-gray-700 rounded"
+                    style={{ maxWidth: 300 }}
+                  >
+                    <Progress.Indicator
+                      className="h-1 rounded bg-red-500 transition-all"
+                      style={{ width: `${progressValue}%` }}
+                    />
+                  </Progress.Root>
+                </div>
+              )}
+
+              {/* Overlay for gradient effect */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent rounded-lg"></div>
+              {/* Movie info at the bottom */}
+              <div className="absolute left-0 bottom-0 z-10 p-3 w-full">
+                <h3 className="text-2xl truncate mb-1">{movie.Title}</h3>
+                <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
+                    alt="IMDb"
+                    className="w-8 h-4 object-contain"
+                  />
+                  <span>{movie.Rating || "N/A"}</span>
+                  <span>·</span>
+                  <span>{movie.Year}</span>
+                  <span>·</span>
+                  <span>{formatRuntime(movie.Runtime)}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

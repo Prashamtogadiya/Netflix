@@ -14,6 +14,7 @@ export default function MyListPage() {
   const profileURL =
     profile?.avatar || "https://placehold.co/120x120?text=User";
   const [myListMovies, setMyListMovies] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -32,6 +33,12 @@ export default function MyListPage() {
         const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
         setTimeout(() => setLoading(false), remaining);
       });
+
+    // Fetch watch history for progress bars
+    api
+      .post("/profiles/get-watch-history", { profileId: profile._id })
+      .then((res) => setHistory(res.data.watchHistory || []))
+      .catch(() => setHistory([]));
   }, [profile]);
 
   const handleLogout = async () => {
@@ -60,7 +67,7 @@ export default function MyListPage() {
             No movies in your list yet.
           </div>
         ) : (
-          <MyListCarousel movies={myListMovies} />
+          <MyListCarousel movies={myListMovies} watchHistory={history} />
         )}
       </div>
       <Footer />

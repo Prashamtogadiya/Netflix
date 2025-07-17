@@ -27,6 +27,7 @@ export default function MovieDetailPage() {
   const [loading, setLoading] = useState(true);
   const [myListMovies, setMyListMovies] = useState([]);
   const [myListLoading, setMyListLoading] = useState(true);
+  const [history, setHistory] = useState([]);
 
   const videoRef = useRef();
   const [resumeTime, setResumeTime] = useState(0);
@@ -50,8 +51,15 @@ export default function MovieDetailPage() {
         );
         if (entry && entry.progress > 0) setResumeTime(entry.progress);
       });
-  },[profile, movie?._id]);
+  }, [profile, movie?._id]);
 
+  useEffect(() => {
+    if (!profile) return;
+    api
+      .post("/profiles/get-watch-history", { profileId: profile._id })
+      .then((res) => setHistory(res.data.watchHistory || []))
+      .catch(() => setHistory([]));
+  }, [profile]);
   // Combine reset and fetch logic into one effect
   useEffect(() => {
     setMovie(null);
@@ -150,7 +158,6 @@ export default function MovieDetailPage() {
       duration: duration,
     });
   };
-
 
   // Helper to check genre match (handles both string and object)
   const hasGenre = (movie, genre) =>
@@ -270,12 +277,14 @@ export default function MovieDetailPage() {
   useEffect(() => {
     if (!profile || !movie?._id) return;
     // Add to watch history with progress 0 and duration 0 on page load
-    api.post("/profiles/watch-history", {
-      profileId: profile._id,
-      movieId: movie._id,
-      progress: 0,
-      duration: movie.Runtime || 0
-    }).catch(() => {});
+    api
+      .post("/profiles/watch-history", {
+        profileId: profile._id,
+        movieId: movie._id,
+        progress: 0,
+        duration: movie.Runtime || 0,
+      })
+      .catch(() => {});
   }, [profile, movie?._id]);
 
   if (loading) return <NetflixLoader />;
@@ -309,10 +318,15 @@ export default function MovieDetailPage() {
             src={movie.Video}
             controls
             className="w-full h-full"
-            onPause={e => handleProgressSave(e.target.currentTime, e.target.duration)}
-            onEnded={e => handleProgressSave(e.target.duration, e.target.duration)}
+            onPause={(e) =>
+              handleProgressSave(e.target.currentTime, e.target.duration)
+            }
+            onEnded={(e) =>
+              handleProgressSave(e.target.duration, e.target.duration)
+            }
             onLoadedMetadata={() => {
-              if (resumeTime && videoRef.current) videoRef.current.currentTime = resumeTime;
+              if (resumeTime && videoRef.current)
+                videoRef.current.currentTime = resumeTime;
             }}
             autoPlay
           />
@@ -468,6 +482,7 @@ export default function MovieDetailPage() {
             movies={myListMovies}
             visibleCount={5}
             cardWidth={340}
+            watchHistory={history}
           />
         )}
       </div>
@@ -482,15 +497,26 @@ export default function MovieDetailPage() {
           movies={prioritizedMovies}
           visibleCount={5}
           cardWidth={340}
+          watchHistory={history}
         />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
         <h2 className="text-2xl font-bold mb-4">Popular on Netflix</h2>
-        <MovieCarousel movies={movies} visibleCount={5} cardWidth={340} />
+        <MovieCarousel
+          movies={movies}
+          visibleCount={5}
+          cardWidth={340}
+          watchHistory={history}
+        />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
         <h2 className="text-2xl font-bold mb-4">Action Movies</h2>
-        <MovieCarousel movies={actionMovies} visibleCount={5} cardWidth={340} />
+        <MovieCarousel
+          movies={actionMovies}
+          visibleCount={5}
+          cardWidth={340}
+          watchHistory={history}
+        />
       </div>
       <Footer />
     </div>

@@ -13,6 +13,7 @@ export default function Movies() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [watchedCategories, setWatchedCategories] = useState({});
+  const [history, setHistory] = useState([]);
   const profile = useSelector((state) => state.profiles.selectedProfile);
   const profileURL = useSelector(
     (state) => state.profiles.selectedProfile.avatar
@@ -43,11 +44,21 @@ export default function Movies() {
   // Fetch watched categories for the current profile
   useEffect(() => {
     if (!profile) return;
-    api.post("/profiles/watched", { profileId: profile._id })
+    api
+      .post("/profiles/watched", { profileId: profile._id })
       .then((res) => {
         setWatchedCategories(res.data.watchedCategories || {});
       })
       .catch(() => {});
+  }, [profile]);
+
+  // Fetch watch history
+  useEffect(() => {
+    if (!profile) return;
+    api
+      .post("/profiles/get-watch-history", { profileId: profile._id })
+      .then((res) => setHistory(res.data.watchHistory || []))
+      .catch(() => setHistory([]));
   }, [profile]);
 
   // Sorted watched categories by count descending
@@ -139,31 +150,31 @@ export default function Movies() {
               ? `Recommended: ${mostWatchedCategory} Movies`
               : "All Movies"}
           </h2>
-          <MovieCarousel movies={prioritizedMovies} category={mostWatchedCategory || "All"} />
+          <MovieCarousel movies={prioritizedMovies} category={mostWatchedCategory || "All"} watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Most Rated Movies</h2>
-          <MovieCarousel movies={mostRatedMovies} category="Most Rated" />
+          <MovieCarousel movies={mostRatedMovies} category="Most Rated" watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Action Movies</h2>
-          <MovieCarousel movies={actionMovies} category="Action" />
+          <MovieCarousel movies={actionMovies} category="Action" watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Drama Movies</h2>
-          <MovieCarousel movies={dramaMovies} category="Drama" />
+          <MovieCarousel movies={dramaMovies} category="Drama" watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
-          <MovieCarousel movies={crimeMovies} category="Crime" />
+          <MovieCarousel movies={crimeMovies} category="Crime" watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Adventure Movies</h2>
-          <MovieCarousel movies={adventureMovies} category="Adventure" />
+          <MovieCarousel movies={adventureMovies} category="Adventure" watchHistory={history} />
         </section>
         <section className="w-full max-w-7xl px-8 mt-8">
           <h2 className="text-2xl font-bold mb-4">Comedy Movies</h2>
-          <MovieCarousel movies={comedyMovies} category="Comedy" />
+          <MovieCarousel movies={comedyMovies} category="Comedy" watchHistory={history} />
         </section>
       </div>
       <Footer />
