@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api"; 
-const SearchBar = () => {
+const SearchBar = ({ inputRef, onBlur, inputClassName, alwaysShowDropdown = false, ...props }) => {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -21,7 +21,7 @@ const SearchBar = () => {
       );
       const data = await res.json();
       setResults(data);
-      setShowDropdown(true);
+      setShowDropdown(alwaysShowDropdown || true); // always show dropdown if prop is true
     } catch {
       setResults([]);
       setShowDropdown(false);
@@ -37,7 +37,7 @@ const SearchBar = () => {
   }
 
   return (
-    <div className="relative w-full max-w-md transition-all duration-300">
+    <div className={`relative w-full max-w-md transition-all duration-300 ${props.wrapperClassName || ""}`}>
       {/* Search input container */}
       <div className="flex items-center bg-[#141414] border border-gray-700 rounded-full px-4 py-1 focus-within:border-white">
         <svg
@@ -57,11 +57,12 @@ const SearchBar = () => {
         <input
           type="text"
           placeholder="Titles, people, genres"
-          className="w-full bg-transparent outline-none text-white placeholder-gray-400"
+          className={inputClassName || "w-full bg-transparent outline-none text-white placeholder-gray-400"}
           value={search}
           onChange={handleSearchChange}
-          onFocus={() => search && setShowDropdown(true)}
-          onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
+          onFocus={() => (search && setShowDropdown(alwaysShowDropdown || true))}
+          onBlur={onBlur}
+          ref={inputRef}
         />
       </div>
 
