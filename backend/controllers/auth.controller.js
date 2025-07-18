@@ -37,8 +37,8 @@ const cookieOptions = {
 
 // Controller for user signup/registration
 exports.signup = async (req, res) => {
-  // Destructure email, password, and name from request body
-  const { email, password, name, role } = req.body;
+  // Destructure email, password, and name from request body. Role is intentionally omitted for security.
+  const { email, password, name } = req.body;
   try {
     // Check if a user with this email already exists
     const existingUser = await User.findOne({ email });
@@ -46,8 +46,8 @@ exports.signup = async (req, res) => {
 
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
-    // Create the user in the database
-    const user = await User.create({ email, password: hashedPassword, name,role: role || 'user' });
+    // Create the user in the database with a default role of 'user'
+    const user = await User.create({ email, password: hashedPassword, name, role: 'user' });
 
     // Generate tokens and save refresh token in DB
     const { accessToken, refreshToken } = generateTokens(user);
@@ -79,8 +79,13 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
     // Find user by email (case-insensitive)
-    const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, "i") } });
+    const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+    // This login is for regular users only
+    if (user.role !== 'user') {
+      return res.status(403).json({ message: 'Access denied. Invalid credentials.' });
+    }
 
     // Compare password with hashed password in DB
     const isMatch = await bcrypt.compare(password, user.password);
@@ -104,6 +109,41 @@ exports.login = async (req, res) => {
   } catch (err) {
     // Handle errors
     res.status(500).json({ message: 'Login failed', error: err.message });
+  }
+};
+
+// Controller for admin login
+exports.adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required.' });
+    }
+    // Find user by email (case-insensitive)
+    const user = await User.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+
+    // This login is for admins only
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Access denied. Not an admin.' });
+    }
+
+    // Compare password with hashed password in DB
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+    // Generate tokens and save refresh token in DB
+    const { accessToken, refreshToken } = generateTokens(user);
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Set tokens as HTTP-only cookies
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, cookieOptions);
+    // Respond with success and user ID
+    res.status(200).json({ message: 'Admin login successful', userId: user._id, email: user.email, role: user.role });
+  } catch (err) {
+    res.status(500).json({ message: 'Admin login failed', error: err.message });
   }
 };
 

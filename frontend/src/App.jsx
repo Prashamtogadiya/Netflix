@@ -16,6 +16,7 @@ import Movies from "./pages/Movies";
 import AllMoviesPage from "./pages/AllMoviesPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import HistoryPage from "./pages/HistoryPage";
+import AdminLogin from './pages/AdminLogin';
 
 
 function App() {
@@ -55,6 +56,14 @@ function App() {
           element={
             <RedirectIfAuth>
               <LoginPage />
+            </RedirectIfAuth>
+          }
+        />
+        <Route
+          path="/admin/login"
+          element={
+            <RedirectIfAuth>
+              <AdminLogin />
             </RedirectIfAuth>
           }
         />
