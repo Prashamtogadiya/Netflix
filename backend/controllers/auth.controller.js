@@ -27,7 +27,7 @@ const generateTokens = (user) => {
 };
 
 // Helper for cookie options
-const isProd = process.env.NODE_ENV === "production";
+const isProd = "production";
 const cookieOptions = {
   httpOnly: true,
   sameSite: isProd ? "strict" : "lax",

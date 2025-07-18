@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     // Connect to MongoDB using the URI from environment variables or default to local
-    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/netflix');
+    await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected');
   } catch (err) {
     // If connection fails, log error and exit process

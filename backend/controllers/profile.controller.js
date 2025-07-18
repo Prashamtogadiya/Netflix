@@ -1,7 +1,5 @@
-// Import Profile and User models for database operations
 const Profile = require("../models/Profile.js");
 const User = require("../models/User.js");
-// FIX: Only import Movie, not destructure
 const Movie = require("../models/Movie.js").Movie;
 
 // Create a new profile for the logged-in user
@@ -73,7 +71,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Delete a profile (only if it belongs to the logged-in user)
+// Delete a profile 
 exports.deleteProfile = async (req, res) => {
   try {
     // Get profile ID from URL params and userId from JWT
@@ -149,13 +147,12 @@ exports.removeMovieFromMyList = async (req, res) => {
   }
 };
 
-// Get all movies in a profile's myList (with movie details)
+// Get all movies in a profile's myList 
 exports.getMyList = async (req, res) => {
   try {
     const { profileId } = req.params;
     const userId = req.user.userId;
 
-    // Ensure the profile belongs to the logged-in user
     const profile = await Profile.findOne({ _id: profileId, userId }).populate(
       "myList"
     );
@@ -179,7 +176,6 @@ exports.updateWatchedCategories = async (req, res) => {
   try {
     // Check if both profileId and movieId are provided
     if (!profileId || !movieId) {
-      // If missing, send a 400 error
       console.error("Missing profileId or movieId", { profileId, movieId });
       return res
         .status(400)
@@ -272,7 +268,7 @@ exports.addOrUpdateWatchHistory = async (req,res)=>{
     );
     profile.watchHistory.unshift({
       movie: movieId,
-      watchedAt: new Date(), // <-- fix typo here
+      watchedAt: new Date(), 
       progress: progress || 0,
       duration: duration || 0
     });

@@ -6,14 +6,7 @@ exports.createMovie = async (req, res) => {
   try {
     // Get movie data from request body
     const movieData = req.body;
-    // At this point, movieData.Image (and/or movieData.ActorImage) should be an array of filenames
-    // Example: movieData.Image = ["1712345678901-images.jpg", ...]
-    // These filenames are sent from the frontend after uploading images
-
-    // Create the movie in the database, storing the filenames in the Image/ActorImage fields
     const movie = await Movie.create(movieData);
-    // Now the Movie document in MongoDB has the filenames stored in its Image/ActorImage fields
-
     res.status(201).json(movie);
   } catch (err) {
     res.status(500).json({ message: 'Failed to create movie', error: err.message });
@@ -154,9 +147,6 @@ exports.getActors = async (req, res) => {
 exports.createActor = async (req, res) => {
   try {
     const { name } = req.body;
-    // If you want to store an image filename for an actor, you would add an image field here
-    // Example: const actor = await Actor.create({ name, image: "filename.jpg" });
-    // In your current code, only the name is stored
     const existing = await Actor.findOne({ name });
     if (existing) return res.status(400).json({ message: "Actor already exists" });
     const actor = await Actor.create({ name });

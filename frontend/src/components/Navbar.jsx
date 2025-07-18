@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 export default function Navbar({ profile, profileURL, onLogout }) {
@@ -9,19 +9,23 @@ export default function Navbar({ profile, profileURL, onLogout }) {
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (dropdown) {
-      const handleClick = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setDropdown(false);
-        }
-      };
-      document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
-    }
-  }, [dropdown]);
+const handleMyProfile = () => {
+    setDropdown(false);
+    navigate('/profiles');
+  };
 
+  const handleProfiles = () => {
+    setDropdown(false);
+    navigate('/profiles');
+  };
+
+  const handleLogoutClick = () => {
+    setDropdown(false);
+    if (onLogout) onLogout();
+  };
+  
   useEffect(() => setNavOpen(false), [location.pathname]);
   useEffect(() => setSearchOpen(false), [location.pathname]);
 
@@ -102,29 +106,26 @@ export default function Navbar({ profile, profileURL, onLogout }) {
             {dropdown && (
               <div
                 className="absolute right-0 top-12 w-44 bg-gray-900 rounded-lg shadow-xl border border-gray-800 z-30"
-                tabIndex={-1}
                 onMouseLeave={() => setDropdown(false)}
               >
                 <div className="flex flex-col">
                   <a
                     href="/profiles"
                     className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
-                    onClick={() => setDropdown(false)}
+                    onClick={handleMyProfile}
                   >
                     My Profile
                   </a>
                   <a
                     href="/profiles"
+                    onClick={handleProfiles}
                     className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
                   >
                     Profiles
                   </a>
                   <hr className="my-1 border-gray-800" />
                   <button
-                    onClick={() => {
-                      setDropdown(false);
-                      onLogout && onLogout();
-                    }}
+                    onClick={handleLogoutClick}
                     className="px-4 py-3 text-left text-white transition hover:bg-red-600"
                   >
                     Logout

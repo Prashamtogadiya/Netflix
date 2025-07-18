@@ -14,14 +14,13 @@ export default function Footer() {
           />
           
         </div>
-        {/* Middle: Links */}
         <div className="flex flex-col gap-2">
           <a href="#" className="hover:underline">FAQ</a>
           <a href="#" className="hover:underline">Help Centre</a>
           <a href="#" className="hover:underline">Account</a>
           <a href="#" className="hover:underline">Media Centre</a>
         </div>
-        {/* Right: Anything else */}
+       
         <div className="flex flex-col gap-2">
           <a href="#" className="hover:underline">Privacy</a>
           <a href="#" className="hover:underline">Cookie Preferences</a>

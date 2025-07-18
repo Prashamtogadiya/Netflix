@@ -6,8 +6,8 @@ const mongoose = require('mongoose');
 exports.addReview = async (req, res) => {
   try {
     const { movieId } = req.params;
-    const { rating, comment } = req.body; // <-- must be 'comment'
-    const userId = req.user.userId; // From auth middleware
+    const { rating, comment } = req.body; 
+    const userId = req.user.userId;
 
     if (!mongoose.Types.ObjectId.isValid(movieId)) {
       return res.status(400).json({ message: 'Invalid movie ID' });
@@ -20,7 +20,7 @@ exports.addReview = async (req, res) => {
     movie.Reviews.push({
       user: userId,
       rating,
-      comment, // <-- must match schema
+      comment, 
       createdAt: new Date()
     });
     await movie.save();

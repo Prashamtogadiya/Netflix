@@ -40,7 +40,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
 // Mount movie routes at /api/movies
 app.use('/api/movies', movieRoutes);
+// Mount review routes at /api/reviews
 app.use('/api/reviews', reviewRoutes);
+// Mount setting routes at /api/settings
 app.use('/api/settings', settingsRoutes);
 
 

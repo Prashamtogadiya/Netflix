@@ -25,7 +25,7 @@ const path = require('path');
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     // 1. This function tells Multer where to save uploaded files.
-    // It sets the destination to the 'uploads' folder in your backend.
+    // It sets the destination to the 'uploads' folder in backend.
     // If the folder doesn't exist, it creates it.
     const uploadPath = path.join(__dirname, '../uploads');
     const fs = require('fs');
@@ -37,15 +37,14 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     // 2. This function tells Multer how to name each uploaded file.
     // It uses the current timestamp + field name + original extension.
-    // Example: 1712345678901-images.jpg
     const ext = path.extname(file.originalname);
     cb(null, `${Date.now()}-${file.fieldname}${ext}`);
-    // The filename is what gets stored in the DB (by your controller, not by Multer itself)
+    // The filename is what gets stored in the DB
   }
 });
 const upload = multer({ storage });
 
-// Genre and Actor routes (controllers handle logic)
+// Genre and Actor routes 
 router.get('/genres', getGenres);
 router.post('/genres', createGenre);
 router.get('/actors', getActors);
