@@ -12,10 +12,14 @@ const {
   createActor,
   getGenres,
   getActors,
+  deleteActor,
+  updateActor,
   uploadMovieImages,
   uploadActorImages,
   getHeroCarouselMovies,
-  incrementSearches
+  incrementSearches,
+  deleteGenre,
+  updateGenre
 } = require('../controllers/movie.controller.js');
 const { authenticate, verifyAdmin } = require('../middlewares/auth.middleware.js');
 const multer = require('multer');
@@ -47,8 +51,12 @@ const upload = multer({ storage });
 // Genre and Actor routes 
 router.get('/genres', getGenres);
 router.post('/genres', createGenre);
+router.put('/genres/update/:id', authenticate, verifyAdmin, updateGenre)
+router.delete('/genres/delete/:id', authenticate, verifyAdmin,deleteGenre)
 router.get('/actors', getActors);
 router.post('/actors', createActor);
+router.put('/actors/update/:id', authenticate, verifyAdmin, updateActor)
+router.delete('/actors/delete/:id', authenticate, verifyAdmin, deleteActor)
 
 // Search
 router.get('/search', searchMoviessByPrefix);

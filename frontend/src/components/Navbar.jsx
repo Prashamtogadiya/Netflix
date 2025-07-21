@@ -39,9 +39,8 @@ const handleMyProfile = () => {
   const safeProfileURL = profileURL || "https://placehold.co/120x120?text=User";
   const navLinks = [
     { label: "Home", href: "/dashboard", show: location.pathname !== "/dashboard" },
-    { label: "TV Shows", href: "/tvshows" },
-    { label: "History", href: "/history", show: location.pathname !== "/history" },
-    { label: "Movies", href: "/movies" },
+    { label: "TV Shows", href: "/tvshows",show: location.pathname !== "/tvshows" },
+    { label: "Movies", href: "/movies",show: location.pathname !== "/movies" },
     { label: "My List", href: "/mylist" },
   ];
 

@@ -11,7 +11,7 @@ function formatRuntime(runtime) {
 }
 
 // Shows a horizontal carousel of movie cards with navigation arrows and "View More" button.
-export default function MovieCarousel({ movies, category, watchHistory = [] }) {
+export default function MovieCarousel({ movies, category, watchHistory = [], viewMoreType }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [atEnd, setAtEnd] = useState(false);
@@ -71,9 +71,13 @@ export default function MovieCarousel({ movies, category, watchHistory = [] }) {
     }
   }
 
-  // Navigates to the "View More" page for the category
+  // Navigates to the "View More" page for the category or my list
   const handleViewMore = () => {
-    if (inferredCategory) {
+    if (viewMoreType === "mylist") {
+      navigate("/mylist");
+    } else if (viewMoreType === "tvshows") {
+      navigate("/alltvshows");
+    } else if (viewMoreType === "category" && inferredCategory) {
       navigate(`/allmovies?category=${encodeURIComponent(inferredCategory)}`);
     } else {
       navigate("/allmovies");
@@ -143,8 +147,8 @@ export default function MovieCarousel({ movies, category, watchHistory = [] }) {
         {movies.length === 0 && (
           <div className="text-gray-400">No movies found.</div>
         )}
-        {/* Render up to 10 movie cards */}
-        {movies.slice(0, 10).map((movie) => {
+        {/* Render up to 25 movie cards */}
+        {movies.slice(0, 25).map((movie) => {
           const progressValue = getProgress(movie._id);
           return (
             <div

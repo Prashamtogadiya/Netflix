@@ -3,6 +3,7 @@ import api from "../api";
 import NetflixLoader from "../components/NetflixLoader";
 import MovieCarousel from "../components/MovieCarousel";
 import Navbar from "../components/Navbar";
+import HeroCarousel from "../components/HeroCarousel";
 import { clearUser } from "../features/user/userSlice";
 import { clearProfiles } from "../features/profiles/profileSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +15,7 @@ export default function Movies() {
   const [loading, setLoading] = useState(true);
   const [watchedCategories, setWatchedCategories] = useState({});
   const [history, setHistory] = useState([]);
+  const [heroMode, setHeroMode] = useState("");
   const profile = useSelector((state) => state.profiles.selectedProfile);
   const profileURL = useSelector(
     (state) => state.profiles.selectedProfile.avatar
@@ -27,7 +29,18 @@ export default function Movies() {
     api
       .get("/movies")
       .then((res) => {
-        setMovies(res.data);
+        // Filter for movies, series, documentry (exclude TV Show)
+        const all = Array.isArray(res.data) ? res.data : [];
+        const filtered = all.filter(
+          (m) =>
+            Array.isArray(m.Types) &&
+            m.Types.some(
+              (t) =>
+                typeof t === "string" &&
+                ["movie", "series", "Documentry"].includes(t.trim())
+            )
+        );
+        setMovies(filtered);
       })
       .catch(() => {
         setMovies([]);
@@ -39,6 +52,14 @@ export default function Movies() {
           setLoading(false);
         }, remainingTime);
       });
+  }, []);
+
+  // Fetch hero mode on mount (same as dashboard)
+  useEffect(() => {
+    api
+      .get("/settings/hero-mode")
+      .then((res) => setHeroMode(res.data.heroMode || "Most Rated"))
+      .catch(() => setHeroMode("Most Rated"));
   }, []);
 
   // Fetch watched categories for the current profile
@@ -88,12 +109,6 @@ export default function Movies() {
           : ""
         ) === genre
     );
-
-  const actionMovies = movies.filter((movie) => hasGenre(movie, "Action"));
-  const dramaMovies = movies.filter((movie) => hasGenre(movie, "Drama"));
-  const adventureMovies = movies.filter((movie) => hasGenre(movie, "Adventure"));
-  const crimeMovies = movies.filter((movie) => hasGenre(movie, "Crime"));
-  const comedyMovies = movies.filter((movie) => hasGenre(movie, "Comedy"));
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
 
@@ -134,6 +149,40 @@ export default function Movies() {
     return prioritized;
   }, [movies, sortedWatchedCategories]);
 
+  // Movies by watched categories, in order
+  const moviesByCategory = sortedWatchedCategories.map((cat) => ({
+    category: cat,
+    movies: movies.filter(
+      (m) =>
+        Array.isArray(m.Genre) &&
+        m.Genre.some(
+          (g) =>
+            (typeof g === "object" && g !== null && g.name
+              ? g.name
+              : typeof g === "string"
+              ? g
+              : "") === cat
+        )
+    ),
+  })).filter(({ movies }) => movies.length > 0);
+
+  // Compute hero carousel movies based on heroMode and movies
+  const heroCarouselMovies = React.useMemo(() => {
+    if (!Array.isArray(movies) || movies.length === 0) return [];
+    if (heroMode.toLowerCase() === "recently added") {
+      // Sort by createdAt descending
+      return [...movies]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 6);
+    }
+    if (heroMode.toLowerCase() === "most searched") {
+      // Sort by search count
+      return [...movies].sort((a, b) => b.Searches - a.Searches).slice(0, 6);
+    }
+    // Default: Most Rated
+    return [...movies].sort((a, b) => b.Rating - a.Rating).slice(0, 6);
+  }, [movies, heroMode]);
+
   if (loading) return <NetflixLoader />;
 
   return (
@@ -143,38 +192,30 @@ export default function Movies() {
         profileURL={profileURL}
         onLogout={handleLogout}
       />
+      {/* Hero Carousel (exclude TV Shows) */}
+      {heroCarouselMovies.length > 0 && (
+        <HeroCarousel movies={heroCarouselMovies} mode={heroMode} />
+      )}
       <div className="pt-22 max-w-7xl mx-auto w-full px-4 flex-1">
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">
-            {mostWatchedCategory
-              ? `Recommended: ${mostWatchedCategory} Movies`
-              : "All Movies"}
-          </h2>
-          <MovieCarousel movies={prioritizedMovies} category={mostWatchedCategory || "All"} watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
+        {/* Recommended carousels for each watched category */}
+        {moviesByCategory.length > 0 ? (
+          moviesByCategory.map(({ category, movies }) => (
+            <section className="w-full max-w-7xl px-5 mt-8" key={category}>
+              <h2 className="text-2xl font-bold mb-4">
+                 {category} Movies
+              </h2>
+              <MovieCarousel movies={movies} category={category} watchHistory={history} />
+            </section>
+          ))
+        ) : (
+          <section className="w-full max-w-7xl px-5 mt-8">
+            <h2 className="text-2xl font-bold mb-4">All Movies</h2>
+            <MovieCarousel movies={movies} category="All" watchHistory={history} />
+          </section>
+        )}
+        <section className="w-full max-w-7xl px-5 mt-8">
           <h2 className="text-2xl font-bold mb-4">Most Rated Movies</h2>
           <MovieCarousel movies={mostRatedMovies} category="Most Rated" watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Action Movies</h2>
-          <MovieCarousel movies={actionMovies} category="Action" watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Drama Movies</h2>
-          <MovieCarousel movies={dramaMovies} category="Drama" watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Crime Movies</h2>
-          <MovieCarousel movies={crimeMovies} category="Crime" watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Adventure Movies</h2>
-          <MovieCarousel movies={adventureMovies} category="Adventure" watchHistory={history} />
-        </section>
-        <section className="w-full max-w-7xl px-8 mt-8">
-          <h2 className="text-2xl font-bold mb-4">Comedy Movies</h2>
-          <MovieCarousel movies={comedyMovies} category="Comedy" watchHistory={history} />
         </section>
       </div>
       <Footer />

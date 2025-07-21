@@ -134,6 +134,30 @@ exports.createGenre = async (req, res) => {
   }
 };
 
+exports.updateGenre = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    const genre = await Genre.findByIdAndUpdate(id, { name }, { new: true });
+    if (!genre) return res.status(404).json({ message: "Genre not found" });
+    res.status(200).json({ message: "Genre updated", genre });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update genre", error: error.message });
+  }
+};
+
+exports.deleteGenre = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const genre = await Genre.findByIdAndDelete(id);
+    if (!genre) return res.status(404).json({ message: "Genre not found" });
+    res.status(200).json({ message: "Genre deleted", genre });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete genre", error: error.message });
+  }
+};
+
+
 // Actor controllers
 exports.getActors = async (req, res) => {
   try {
@@ -144,6 +168,7 @@ exports.getActors = async (req, res) => {
   }
 };
 
+// Add new Actor
 exports.createActor = async (req, res) => {
   try {
     const { name } = req.body;
@@ -155,6 +180,30 @@ exports.createActor = async (req, res) => {
     res.status(500).json({ message: "Failed to add actor", error: err.message });
   }
 };
+
+exports.updateActor = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name } = req.body;
+    const actor = await Actor.findByIdAndUpdate(id, { name }, { new: true });
+    if (!actor) return res.status(404).json({ message: "Actor not found" });
+    res.status(200).json({ message: "Actor updated", actor });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update actor", error: error.message });
+  }
+};
+
+
+// Delete Actor
+exports.deleteActor = async(req,res)=>{
+  try{
+    const actor = await Actor.findByIdAndDelete(req.params.id);
+    if(!actor) return res.status(404).json({message:"Actor not found"});
+    res.status(200).json({message:"Actor deleted", actor});
+  }catch(error){
+    res.status(500).json({message:"Failed to delete actor", error: error.message});
+  }
+}
 
 // Upload movie images controller
 exports.uploadMovieImages = (req, res) => {

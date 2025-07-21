@@ -17,6 +17,8 @@ import AllMoviesPage from "./pages/AllMoviesPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
 import HistoryPage from "./pages/HistoryPage";
 import AdminLogin from './pages/AdminLogin';
+import TVShows from "./pages/TVShows";
+import AllTVShowsPage from "./pages/AllTVShowsPage";
 
 
 function App() {
@@ -135,7 +137,7 @@ function App() {
           path="/tvshows"
           element={
             <RequireAuth>
-              <Movies />
+              <TVShows />
             </RequireAuth>
           }
         />
@@ -144,6 +146,14 @@ function App() {
           element={
             <RequireAuth>
               <AllMoviesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/alltvshows"
+          element={
+            <RequireAuth>
+              <AllTVShowsPage />
             </RequireAuth>
           }
         />

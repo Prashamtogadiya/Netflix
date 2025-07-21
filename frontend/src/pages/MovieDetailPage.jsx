@@ -483,6 +483,7 @@ export default function MovieDetailPage() {
             visibleCount={5}
             cardWidth={340}
             watchHistory={history}
+            viewMoreType="mylist"
           />
         )}
       </div>
@@ -498,6 +499,8 @@ export default function MovieDetailPage() {
           visibleCount={5}
           cardWidth={340}
           watchHistory={history}
+          viewMoreType="category"
+          category={mostWatchedCategory || ""}
         />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
@@ -507,6 +510,8 @@ export default function MovieDetailPage() {
           visibleCount={5}
           cardWidth={340}
           watchHistory={history}
+          viewMoreType="category"
+          category="Popular"
         />
       </div>
       <div className="max-w-7xl mx-auto w-full px-4 mt-8">
@@ -516,6 +521,8 @@ export default function MovieDetailPage() {
           visibleCount={5}
           cardWidth={340}
           watchHistory={history}
+          viewMoreType="category"
+          category="Action"
         />
       </div>
       <Footer />
