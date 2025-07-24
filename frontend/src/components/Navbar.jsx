@@ -6,12 +6,13 @@ export default function Navbar({ profile, profileURL, onLogout }) {
   const [dropdown, setDropdown] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false); // New state for scroll detection
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
-const handleMyProfile = () => {
+  const handleMyProfile = () => {
     setDropdown(false);
     navigate('/profiles');
   };
@@ -25,7 +26,7 @@ const handleMyProfile = () => {
     setDropdown(false);
     if (onLogout) onLogout();
   };
-  
+
   useEffect(() => setNavOpen(false), [location.pathname]);
   useEffect(() => setSearchOpen(false), [location.pathname]);
 
@@ -35,17 +36,33 @@ const handleMyProfile = () => {
     }
   }, [searchOpen]);
 
+  // Scroll listener for blur effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10); // Trigger blur when scrolled down more than 10px
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll); 
+  }, []);
+
   const safeProfileName = profile?.name || "Profile";
   const safeProfileURL = profileURL || "https://placehold.co/120x120?text=User";
   const navLinks = [
     { label: "Home", href: "/dashboard", show: location.pathname !== "/dashboard" },
-    { label: "TV Shows", href: "/tvshows",show: location.pathname !== "/tvshows" },
-    { label: "Movies", href: "/movies",show: location.pathname !== "/movies" },
+    { label: "TV Shows", href: "/tvshows", show: location.pathname !== "/tvshows" },
+    { label: "Movies", href: "/movies", show: location.pathname !== "/movies" },
     { label: "My List", href: "/mylist" },
   ];
 
   return (
-    <nav className="fixed w-full z-30  bg-gradient-to-b from-black/80 to-transparent transition">
+    <nav 
+      className={`fixed w-full z-30 transition-all duration-300 
+        ${isScrolled 
+          ? 'bg-black/50 backdrop-blur-md'  // Blurred and semi-transparent on scroll
+          : 'bg-gradient-to-b from-black/80 to-transparent'  // Original gradient at top
+        }`}
+    >
       <div className="flex items-center justify-between px-4 md:px-8 h-16 md:h-20">
         {/* Logo - smaller on desktop */}
         <a href="/" className="flex-shrink-0">

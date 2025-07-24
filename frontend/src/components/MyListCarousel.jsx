@@ -103,7 +103,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
           return (
             <div
               key={movie._id}
-              className="snap-start min-w-[350px] max-w-[350px] h-[280px] rounded-xl shadow-2xl flex-shrink-0 relative overflow-hidden group bg-gradient-to-br from-[#232526] to-[#414345] cursor-pointer border-2 border-transparent hover:border-red-600 transition-all duration-200"
+              className="snap-start min-w-[350px] max-w-[350px] h-[280px] rounded-xl shadow-2xl flex-shrink-0 relative overflow-hidden group bg-gradient-to-br from-[#232526] to-[#0a1827] cursor-pointer border-2 border-transparent  transition-all duration-200"
               onClick={() => navigate(`/movies/${movie._id}`)}
               style={{
                 transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
