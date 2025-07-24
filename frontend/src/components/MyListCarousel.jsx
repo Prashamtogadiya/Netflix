@@ -13,7 +13,7 @@ function formatRuntime(runtime) {
 export default function MyListCarousel({ movies, watchHistory = [] }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
-  const scrollBy = 336;
+  const scrollBy = 400; // Updated scroll distance for wider cards
 
   const handlePrev = () => {
     if (scrollRef.current) {
@@ -82,7 +82,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
       </button>
       <div
         ref={scrollRef}
-        className="flex gap-8 overflow-x-auto scroll-smooth snap-x snap-mandatory py-6 hide-scrollbar pl-8 pr-8"
+        className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory py-6 hide-scrollbar pl-8 pr-8"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -103,14 +103,14 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
           return (
             <div
               key={movie._id}
-              className="snap-start min-w-[260px] max-w-[260px] h-[400px] rounded-xl shadow-2xl flex-shrink-0 relative overflow-hidden group bg-gradient-to-br from-[#232526] to-[#414345] cursor-pointer border-2 border-transparent hover:border-red-600 transition-all duration-200"
+              className="snap-start min-w-[350px] max-w-[350px] h-[280px] rounded-xl shadow-2xl flex-shrink-0 relative overflow-hidden group bg-gradient-to-br from-[#232526] to-[#414345] cursor-pointer border-2 border-transparent hover:border-red-600 transition-all duration-200"
               onClick={() => navigate(`/movies/${movie._id}`)}
               style={{
                 transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             >
-              {/* Movie Poster */}
-              <div className="relative h-[70%] w-full overflow-hidden">
+              {/* Movie Poster - Top section with wider aspect ratio */}
+              <div className="relative h-[65%] w-full overflow-hidden">
                 <img
                   src={
                     Array.isArray(movie.Image) && movie.Image.length > 0
@@ -119,7 +119,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                             ? movie.Image[0]
                             : `http://localhost:5000/uploads/${movie.Image[0]}`
                         )
-                      : "https://placehold.co/220x330?text=No+Image"
+                      : "https://placehold.co/350x180?text=No+Image"
                   }
                   alt={movie.Title}
                   className="w-full h-full object-cover rounded-t-xl group-hover:scale-110 transition-transform duration-300"
@@ -131,7 +131,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                     <Progress.Root
                       value={progressValue}
                       className="w-full h-1 bg-gray-700 rounded"
-                      style={{ maxWidth: 260 }}
+                      style={{ maxWidth: "100%" }}
                     >
                       <Progress.Indicator
                         className="h-1 rounded bg-red-500 transition-all"
@@ -143,7 +143,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                 {/* Play Button Overlay */}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <button
-                    className="bg-white text-black rounded-full p-3 shadow-lg hover:bg-red-600 hover:text-white transition"
+                    className="bg-white text-black rounded-full p-2.5 shadow-lg hover:bg-red-600 hover:text-white transition"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/movies/${movie._id}`);
@@ -151,7 +151,7 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                     aria-label="Play"
                   >
                     <svg
-                      className="w-7 h-7"
+                      className="w-6 h-6"
                       fill="currentColor"
                       viewBox="0 0 24 24"
                     >
@@ -160,28 +160,31 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                   </button>
                 </div>
                 {/* My List Badge */}
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-3 py-1 rounded-full font-semibold tracking-wide shadow">
+                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full font-semibold tracking-wide shadow">
                   My List
                 </div>
               </div>
-              {/* Info */}
-              <div className="flex flex-col justify-between h-[30%] p-4">
-                <h3 className="text-lg font-bold text-white truncate mb-1">
-                  {movie.Title}
-                </h3>
-                <div className="flex items-center gap-2 text-xs text-gray-300 font-semibold mb-2">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
-                    alt="IMDb"
-                    className="w-8 h-4 object-contain"
-                  />
-                  <span>{movie.Rating || "N/A"}</span>
-                  <span>·</span>
-                  <span>{movie.Year}</span>
-                  <span>·</span>
-                  <span>{formatRuntime(movie.Runtime)}</span>
+
+              {/* Info Section - Bottom section */}
+              <div className="flex flex-col justify-between h-[35%] p-3">
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-1 line-clamp-2 leading-tight">
+                    {movie.Title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-300 font-semibold mb-2">
+                    <img
+                      src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
+                      alt="IMDb"
+                      className="w-6 h-2.5 object-contain"
+                    />
+                    <span>{movie.Rating || "N/A"}</span>
+                    <span>·</span>
+                    <span>{movie.Year}</span>
+                    <span>·</span>
+                    <span>{formatRuntime(movie.Runtime)}</span>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-300 line-clamp-2">
+                <p className="text-xs text-gray-300 line-clamp-2 leading-tight">
                   {movie.Description}
                 </p>
               </div>

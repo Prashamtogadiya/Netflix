@@ -21,7 +21,6 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const [movies, setMovies] = useState([]);
   const [heroMode, setHeroMode] = useState(""); // <-- only heroMode, not heroCarouselMovies
-  const [startIdx, setStartIdx] = useState(0);
   const [loading, setLoading] = useState(true);
   const [watchedCategories, setWatchedCategories] = useState({});
   const [history, setHistory] = useState([]);
@@ -113,43 +112,9 @@ export default function DashboardPage() {
   }, [movies, heroMode]);
 
   // Sort watched categories by count descending
-  const mostWatchedCategory = sortedWatchedCategories[0] || null;
 
   // Movies prioritized by watched categories order
-  const prioritizedMovies = React.useMemo(() => {
-    if (!sortedWatchedCategories.length) return safeMovies;
-    const seen = new Set();
-    const prioritized = [];
-    // Add movies for each watched category in order
-    sortedWatchedCategories.forEach((cat) => {
-      safeMovies.forEach((movie) => {
-        if (
-          Array.isArray(movie.Genre) &&
-          movie.Genre.some(
-            (g) =>
-              (typeof g === "object" && g !== null && g.name
-                ? g.name
-                : typeof g === "string"
-                ? g
-                : "") === cat
-          ) &&
-          !seen.has(movie._id)
-        ) {
-          prioritized.push(movie);
-          seen.add(movie._id);
-        }
-      });
-    });
-    // Add remaining movies
-    safeMovies.forEach((movie) => {
-      if (!seen.has(movie._id)) {
-        prioritized.push(movie);
-        seen.add(movie._id);
-      }
-    });
-    return prioritized;
-  }, [safeMovies, sortedWatchedCategories]);
-
+ 
   // Movies by watched categories, in order
   const moviesByCategory = sortedWatchedCategories.map((cat) => ({
     category: cat,
@@ -213,11 +178,7 @@ export default function DashboardPage() {
   if (loading) return <NetflixLoader />;
 
   // For main carousel
-  const maxStartIdx = Math.max(0, safeMovies.length - VISIBLE_COUNT);
-  const handlePrev = () => setStartIdx((prev) => Math.max(prev - SHIFT_BY, 0));
-  const handleNext = () =>
-    setStartIdx((prev) => Math.min(prev + SHIFT_BY, maxStartIdx));
-
+ 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <Navbar

@@ -92,6 +92,7 @@ export default function AllMoviesPage() {
       })
       .catch(() => {});
   }, [profile]);
+  
   useEffect(() => {
     if (!profile) return;
     api
@@ -99,6 +100,7 @@ export default function AllMoviesPage() {
       .then((res) => setHistory(res.data.watchHistory || []))
       .catch(() => setHistory([]));
   }, [profile]);
+  
   const mostWatchedCategory = React.useMemo(() => {
     if (!watchedCategories) return null;
     let max = 0, result = null;
@@ -211,8 +213,8 @@ export default function AllMoviesPage() {
               : `All ${category} Movies`
             : "All Movies"}
         </h2>
-        {/* Movie grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
+        {/* Movie grid - Optimized for wider, shorter cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
           {/* Show message if no movies */}
           {prioritizedMovies.length === 0 && !loading && (
             <div className="text-gray-400 col-span-full text-center">
@@ -225,10 +227,11 @@ export default function AllMoviesPage() {
             return (
               <div
                 key={movie._id}
-                className="bg-gray-900 rounded-lg shadow-lg overflow-hidden cursor-pointer group transition hover:scale-105 relative"
+                className="bg-gray-900 rounded-lg shadow-lg overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 hover:shadow-xl relative"
                 onClick={() => navigate(`/movies/${movie._id}`)}
               >
                 <div className="relative">
+                  {/* Much shorter and wider image for better aspect ratio */}
                   <img
                     src={
                       Array.isArray(movie.Image) && movie.Image.length > 0
@@ -237,11 +240,21 @@ export default function AllMoviesPage() {
                               ? movie.Image[0]
                               : `http://localhost:5000/uploads/${movie.Image[0]}`
                           )
-                        : "https://placehold.co/220x330?text=No+Image"
+                        : "https://placehold.co/400x225?text=No+Image"
                     }
                     alt={movie.Title}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-50 object-cover" // Reduced from h-40 to h-32 for wider aspect ratio
                   />
+                  
+                  {/* Play button overlay on hover */}
+                  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-80 transition-all duration-300 flex items-center justify-center">
+                    <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  
                   {/* Progress bar if user has watched */}
                   {progressValue !== null && (
                     <div className="absolute left-0 bottom-0 w-full px-2 pb-1 z-20">
@@ -258,13 +271,15 @@ export default function AllMoviesPage() {
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-bold mb-1 truncate">{movie.Title}</h3>
-                  <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold mb-2">
+                
+                {/* Compact movie info section */}
+                <div className="p-3">
+                  <h3 className="text-sm font-bold mb-1 truncate">{movie.Title}</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-300 mb-1">
                     <img
                       src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"
                       alt="IMDb"
-                      className="w-8 h-4 object-contain"
+                      className="w-5 h-2.5 object-contain"
                     />
                     <span>{movie.Rating || "N/A"}</span>
                     <span>·</span>
@@ -276,12 +291,13 @@ export default function AllMoviesPage() {
                         : "N/A"}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-300 line-clamp-2">{movie.Description}</p>
+                  <p className="text-xs text-gray-400 line-clamp-2 leading-tight">{movie.Description}</p>
                 </div>
               </div>
             );
           })}
         </div>
+        
         {/* Loader for infinite scroll */}
         {hasMore && (
           <div ref={loaderRef} className="flex justify-center py-8">
@@ -301,4 +317,3 @@ export default function AllMoviesPage() {
     </div>
   );
 }
-

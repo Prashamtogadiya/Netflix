@@ -98,57 +98,10 @@ export default function Movies() {
   };
 
   // Helper to check genre match (handles both string and object)
-  const hasGenre = (movie, genre) =>
-    Array.isArray(movie.Genre) &&
-    movie.Genre.some(
-      (g) =>
-        (typeof g === "object" && g !== null && g.name
-          ? g.name
-          : typeof g === "string"
-          ? g
-          : ""
-        ) === genre
-    );
+  
   const mostRated = [...movies];
   const mostRatedMovies = mostRated.sort((a, b) => b.Rating - a.Rating);
-
-  // The most watched category is the first in the sorted list
-  const mostWatchedCategory = sortedWatchedCategories[0] || null;
-
-  // Movies prioritized by watched categories order
-  const prioritizedMovies = React.useMemo(() => {
-    if (!sortedWatchedCategories.length) return movies;
-    const seen = new Set();
-    const prioritized = [];
-    sortedWatchedCategories.forEach((cat) => {
-      movies.forEach((m) => {
-        if (
-          Array.isArray(m.Genre) &&
-          m.Genre.some(
-            (g) =>
-              (typeof g === "object" && g !== null && g.name
-                ? g.name
-                : typeof g === "string"
-                ? g
-                : ""
-              ) === cat
-          ) &&
-          !seen.has(m._id)
-        ) {
-          prioritized.push(m);
-          seen.add(m._id);
-        }
-      });
-    });
-    movies.forEach((m) => {
-      if (!seen.has(m._id)) {
-        prioritized.push(m);
-        seen.add(m._id);
-      }
-    });
-    return prioritized;
-  }, [movies, sortedWatchedCategories]);
-
+ 
   // Movies by watched categories, in order
   const moviesByCategory = sortedWatchedCategories.map((cat) => ({
     category: cat,
