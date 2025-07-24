@@ -10,7 +10,11 @@ function formatRuntime(runtime) {
   return `${hours > 0 ? `${hours}h ` : ""}${minutes}m`;
 }
 
-export default function MyListCarousel({ movies, watchHistory = [] }) {
+export default function MyListCarousel({
+  movies,
+  watchHistory = [],
+  onRemoveFromMyList = () => {},
+}) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const scrollBy = 400; // Updated scroll distance for wider cards
@@ -160,9 +164,32 @@ export default function MyListCarousel({ movies, watchHistory = [] }) {
                   </button>
                 </div>
                 {/* My List Badge */}
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full font-semibold tracking-wide shadow">
+                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full font-semibold tracking-wide shadow z-20">
                   My List
                 </div>
+                {/* Remove from My List Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemoveFromMyList(movie._id);
+                  }}
+                  className="absolute top-2 right-2 z-20 bg-black/70 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                  aria-label="Remove from My List"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
 
               {/* Info Section - Bottom section */}

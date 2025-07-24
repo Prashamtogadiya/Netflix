@@ -50,6 +50,23 @@ export default function MyListPage() {
     navigate("/login");
   };
 
+  const handleRemoveFromMyList = async (movieId) => {
+    if (!profile) return;
+
+    const originalList = [...myListMovies];
+    setMyListMovies((prev) => prev.filter((movie) => movie._id !== movieId));
+
+    try {
+      await api.post("/profiles/mylist/remove", {
+        profileId: profile._id,
+        movieId: movieId,
+      });
+    } catch (err) {
+      console.error("Error removing from My List:", err);
+      setMyListMovies(originalList);
+      alert("Failed to remove the movie from your list. Please try again.");
+    }
+  };
   if (!profile) return null;
   if (loading) return <NetflixLoader />;
 
@@ -67,7 +84,11 @@ export default function MyListPage() {
             No movies in your list yet.
           </div>
         ) : (
-          <MyListCarousel movies={myListMovies} watchHistory={history} />
+          <MyListCarousel
+            movies={myListMovies}
+            watchHistory={history}
+            onRemoveFromMyList={handleRemoveFromMyList}
+          />
         )}
       </div>
       <Footer />
