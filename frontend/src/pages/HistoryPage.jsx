@@ -10,7 +10,7 @@ import * as Progress from "@radix-ui/react-progress";
 export default function HistoryPage() {
   const profile = useSelector((state) => state.profiles.selectedProfile);
   const profileURL = useSelector(
-    (state) => state.profiles.selectedProfile.avatar
+    (state) => state.profiles.selectedProfile?.avatar
   );
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,8 @@ export default function HistoryPage() {
                   <div className="relative w-full h-56 flex items-center justify-center">
                     <img
                       src={
-                        Array.isArray(entry.movie.Image) && entry.movie.Image.length > 0
+                        Array.isArray(entry.movie.Image) &&
+                        entry.movie.Image.length > 0
                           ? entry.movie.Image[0].startsWith("http")
                             ? entry.movie.Image[0]
                             : `http://localhost:5000/uploads/${entry.movie.Image[0]}`
@@ -72,7 +73,7 @@ export default function HistoryPage() {
                       alt={entry.movie.Title}
                       className="w-full h-full object-cover rounded-t-lg"
                     />
-                    {progressValue !== 0 && (
+                    {
                       <div className="absolute left-0 bottom-0 w-full px-0 pb-0 z-20">
                         <Progress.Root
                           value={progressValue}
@@ -80,15 +81,20 @@ export default function HistoryPage() {
                         >
                           <Progress.Indicator
                             className="h-1 bg-red-500 transition-all"
-                            style={{ width: `${progressValue}%` }}
+                            style={{
+                              width:
+                                progressValue != 0 ? `${progressValue}%` : "1%",
+                            }}
                           />
                         </Progress.Root>
                       </div>
-                    )}
+                    }
                   </div>
                   <div className="flex flex-col justify-between p-4 flex-1">
                     <div>
-                      <h3 className="text-lg font-bold mb-1 truncate">{entry.movie.Title}</h3>
+                      <h3 className="text-lg font-bold mb-1 truncate">
+                        {entry.movie.Title}
+                      </h3>
                       <div className="flex items-center gap-2 text-xs text-gray-200 font-semibold mb-2">
                         <img
                           src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg"

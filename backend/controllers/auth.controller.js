@@ -31,7 +31,7 @@ const isProd = "production";
 const cookieOptions = {
   httpOnly: true,
   sameSite: isProd ? "strict" : "lax",
-  secure: isProd, // only true in production (HTTPS)
+  secure: isProd, 
   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 };
 
@@ -125,7 +125,7 @@ exports.adminLogin = async (req, res) => {
 
     // This login is for admins only
     if (user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied. Not an admin.' });
+      return res.status(403).json({ message: 'Access denied. Invalid credentials.' });
     }
 
     // Compare password with hashed password in DB
@@ -143,7 +143,7 @@ exports.adminLogin = async (req, res) => {
     // Respond with success and user ID
     res.status(200).json({ message: 'Admin login successful', userId: user._id, email: user.email, role: user.role });
   } catch (err) {
-    res.status(500).json({ message: 'Admin login failed', error: err.message });
+    res.status(500).json({ message: 'login failed', error: err.message });
   }
 };
 

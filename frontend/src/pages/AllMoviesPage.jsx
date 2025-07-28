@@ -66,7 +66,7 @@ export default function AllMoviesPage() {
           // Sort by rating if "Most Rated"
           data = [...data].sort((a, b) => b.Rating - a.Rating);
         }
-        // Pagination logic: slice the data for the current page
+        // Pagination logic slice the data for the current page
         const start = (pageNum - 1) * PAGE_SIZE;
         const end = start + PAGE_SIZE;
         const pageData = data.slice(start, end);
@@ -154,7 +154,7 @@ export default function AllMoviesPage() {
     // eslint-disable-next-line
   }, [category]);
 
-  // Infinite scroll: load more when user scrolls to the bottom
+  // Infinite scroll load more when user scrolls to the bottom
   useEffect(() => {
     if (!hasMore || loading) return;
     const observer = new window.IntersectionObserver(
@@ -213,7 +213,6 @@ export default function AllMoviesPage() {
               : `All ${category} Movies`
             : "All Movies"}
         </h2>
-        {/* Movie grid - Optimized for wider, shorter cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
           {/* Show message if no movies */}
           {prioritizedMovies.length === 0 && !loading && (
@@ -231,7 +230,6 @@ export default function AllMoviesPage() {
                 onClick={() => navigate(`/movies/${movie._id}`)}
               >
                 <div className="relative">
-                  {/* Much shorter and wider image for better aspect ratio */}
                   <img
                     src={
                       Array.isArray(movie.Image) && movie.Image.length > 0
@@ -243,7 +241,7 @@ export default function AllMoviesPage() {
                         : "https://placehold.co/400x225?text=No+Image"
                     }
                     alt={movie.Title}
-                    className="w-full h-50 object-cover" // Reduced from h-40 to h-32 for wider aspect ratio
+                    className="w-full h-50 object-cover" 
                   />
                   
                   {/* Play button overlay on hover */}

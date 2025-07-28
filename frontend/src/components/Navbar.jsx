@@ -12,9 +12,9 @@ export default function Navbar({ profile, profileURL, onLogout }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleMyProfile = () => {
+  const handleHistory = () => {
     setDropdown(false);
-    navigate('/profiles');
+    navigate('/history');
   };
 
   const handleProfiles = () => {
@@ -128,16 +128,16 @@ export default function Navbar({ profile, profileURL, onLogout }) {
                   <a
                     href="/profiles"
                     className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
-                    onClick={handleMyProfile}
-                  >
-                    My Profile
-                  </a>
-                  <a
-                    href="/profiles"
                     onClick={handleProfiles}
-                    className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
                   >
                     Profiles
+                  </a>
+                  <a
+                    href="/history"
+                    onClick={handleHistory}
+                    className="px-4 py-3 hover:bg-gray-800 text-white text-left transition"
+                  >
+                    History
                   </a>
                   <hr className="my-1 border-gray-800" />
                   <button

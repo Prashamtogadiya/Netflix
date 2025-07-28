@@ -203,7 +203,6 @@ function ImageUploadField({
   );
 }
 
-// --- Main MovieForm Component ---
 export default function MovieForm({ onSuccess, movie }) {
   // Form state for each movie field (title, description, etc)
   // If editing, start with the movie's data; otherwise, use blanks
